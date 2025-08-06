@@ -1,0 +1,10 @@
+name: MCOHexRoyale
+version: '1.0'
+main: net.mcoasis.mcohexroyale.MCOHexRoyale
+api-version: '1.21'
+authors: [ LazyGamer21 ]
+
+commands:
+  hexroyale:
+    description: Main command for HexRoyale
+    usage: /<command> [subcommand]
