@@ -1,6 +1,5 @@
 package net.mcoasis.mcohexroyale.commands.subcommands;
 
-import net.mcoasis.mcohexroyale.hexagonal.HexCoordinate;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -53,11 +52,5 @@ public class FlagCommand implements SubCommand{
                 return Collections.emptyList();
         }
     }
-
-    public HashMap<UUID, HexCoordinate> getFlagSetters() {
-        return flagSetters;
-    }
-
-    private HashMap<UUID, HexCoordinate> flagSetters = new HashMap<>();
 
 }

@@ -21,7 +21,7 @@ public class PlayerInteractListener implements Listener {
         Block clikedBlock = e.getClickedBlock();
 
         if (clikedBlock == null) return;
-        if (!flagCommand.getFlagSetters().containsKey(player.getUniqueId())) return;
+        //if (!flagCommand.getFlagSetters().containsKey(player.getUniqueId())) return;
 
 
     }

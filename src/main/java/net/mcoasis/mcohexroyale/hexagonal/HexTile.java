@@ -2,51 +2,77 @@ package net.mcoasis.mcohexroyale.hexagonal;
 
 import org.bukkit.Location;
 
+import java.util.Objects;
+
 public class HexTile {
 
-    public HexCoordinate getHexCoordinate() {
-        return hexCoordinate;
-    }
+    private final HexManager hexManager;
 
-    public Location getFlagLocation() {
-        return flagLocation;
-    }
-
-    public HexTeam.TeamColors getCurrentTeam() {
-        return currentTeam;
-    }
-
-    private HexCoordinate hexCoordinate;
+    /**
+     * The axial coordinates for this {@link HexTile}
+     */
+    private final int q, r;
     private Location flagLocation;
-    private HexTeam.TeamColors currentTeam;
+    private HexTeam currentTeam;
 
-    //! not used for anything right now but will give it a HexCoordinate and use it in setHex
     public HexTile(int q, int r) {
-        HexTileManager.getInstance().setHex(q, r, null);
+        this.hexManager = HexManager.getInstance();
+        this.q = q;
+        this.r = r;
+        setHex(this);
     }
 
-    public HexTile(int q, int r, HexTeam.TeamColors teamColor) {
-        HexTileManager.getInstance().setHex(q, r, null);
-        this.currentTeam = teamColor;
+    public HexTile(int q, int r, HexTeam team) {
+        this.hexManager = HexManager.getInstance();
+        this.q = q;
+        this.r = r;
+        this.currentTeam = team;
+        setHex(this);
     }
 
-    public HexTile(int q, int r, HexTeam.TeamColors teamColor, Location flagLocation) {
-        HexTileManager.getInstance().setHex(q, r, null);
-        this.currentTeam = teamColor;
+    public HexTile(int q, int r, HexTeam team, Location flagLocation) {
+        this.hexManager = HexManager.getInstance();
+        this.q = q;
+        this.r = r;
+        this.currentTeam = team;
         this.flagLocation = flagLocation;
+        setHex(this);
+    }
+
+    private void setHex(HexTile tile) {
+        HexTile oldTile = hexManager.getHexTile(tile.getQ(), tile.getR());
+        if (oldTile != null) hexManager.getHexGrid().remove(oldTile);
+        hexManager.getHexGrid().add(tile);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        HexTile hexTile = (HexTile) o;
-        return hexCoordinate.equals(hexTile.hexCoordinate);
+        HexTile that = (HexTile) o;
+        return q == that.q && r == that.r;
     }
 
     @Override
     public int hashCode() {
-        return hexCoordinate.hashCode();
+        return Objects.hash(q, r);
     }
 
+    // -- == Getters + Setters == --
+
+    public int getQ() {
+        return q;
+    }
+
+    public int getR() {
+        return r;
+    }
+
+    public Location getFlagLocation() {
+        return flagLocation;
+    }
+
+    public HexTeam getCurrentTeam() {
+        return currentTeam;
+    }
 }

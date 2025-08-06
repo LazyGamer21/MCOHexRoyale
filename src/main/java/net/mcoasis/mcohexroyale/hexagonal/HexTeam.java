@@ -1,5 +1,6 @@
 package net.mcoasis.mcohexroyale.hexagonal;
 
+import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -7,15 +8,30 @@ import java.util.HashSet;
 
 public class HexTeam {
 
-    private HashSet<Player> members = new HashSet<>();
-    private final TeamColors teamColor;
+    private final HashSet<Player> members = new HashSet<>();
+    private final TeamColor teamColor;
 
-    public HexTeam(TeamColors teamColor) {
+    public HexTeam(TeamColor teamColor) {
         this.teamColor = teamColor;
-        HexTeamManager.getInstance().registerTeam(this, teamColor);
+        registerTeam(this);
     }
 
-    public enum TeamColors {
+    /**
+     *
+     * @param team The {@link HexTeam} to register
+     * @implNote When a new {@link HexTeam} is created, it runs this method on its own
+     */
+    private void registerTeam(HexTeam team) {
+        for (HexTeam existingTeam : HexManager.getInstance().getTeams()) {
+            if (existingTeam.getTeamColor().equals(team.getTeamColor())) {
+                MCOHexRoyale.getInstance().getLogger().warning("[MCOHexRoyale] Attempted to register a team that already exists!");
+                return;
+            }
+        }
+        HexManager.getInstance().getTeams().add(team);
+    }
+
+    public enum TeamColor {
         RED("Red", ChatColor.RED + ""),
         GREEN("Green", ChatColor.GREEN + ""),
         BLUE("Blue", ChatColor.BLUE + ""),
@@ -24,7 +40,7 @@ public class HexTeam {
         final String name;
         final String color;
 
-        TeamColors(String name, String color) {
+        TeamColor(String name, String color) {
             this.name = name;
             this.color = color;
         }
@@ -39,17 +55,21 @@ public class HexTeam {
 
     }
 
-    public void addMember(Player p) {
-        members.add(p);
+    /**
+     *
+     * @param player The player to add to this {@link HexTeam}'s set of members
+     */
+    public void addMember(Player player) {
+        members.add(player);
     }
 
-    //* getters and setters
+    // -- == Getters + Setters == --
 
     public HashSet<Player> getMembers() {
         return members;
     }
 
-    public TeamColors getTeamColor() {
+    public TeamColor getTeamColor() {
         return teamColor;
     }
 }

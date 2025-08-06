@@ -1,7 +1,7 @@
 package net.mcoasis.mcohexroyale.events;
 
+import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
-import net.mcoasis.mcohexroyale.hexagonal.HexTeamManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -31,7 +31,7 @@ public class HexCaptureEvent extends Event {
     }
 
     @Nullable public HexTeam getTeam() {
-        return HexTeamManager.getInstance().getPlayerTeam(player);
+        return HexManager.getInstance().getPlayerTeam(player);
     }
 
 }
