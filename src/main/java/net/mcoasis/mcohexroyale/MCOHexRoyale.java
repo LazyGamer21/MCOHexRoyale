@@ -1,14 +1,16 @@
 package net.mcoasis.mcohexroyale;
 
+import me.ericdavis.lazyGui.LazyGui;
+import me.ericdavis.lazyGui.guiOther.GuiManager;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
 import net.mcoasis.mcohexroyale.commands.tabcompleters.HexRoyaleTabCompleter;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
-import net.mcoasis.mcohexroyale.hexagonal.HexTile;
+import net.mcoasis.mcohexroyale.lazygui.guipages.FlagsPage;
 import net.mcoasis.mcohexroyale.listeners.HexCaptureListener;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
@@ -26,7 +28,16 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     public void onEnable() {
         instance = this;
 
+        // populate the grid before other stuff so it can be used
         HexManager.getInstance().populateGrid();
+
+        new LazyGui(this);
+
+        new FlagsPage();
+
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            GuiManager.guiPages.get(FlagsPage.pageId).open(p);
+        }
 
         // register commands
         HexRoyaleCommand hexRoyaleCommand = new HexRoyaleCommand();
@@ -36,8 +47,6 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         // register events
         getServer().getPluginManager().registerEvents(new HexCaptureListener(), this);
         getServer().getPluginManager().registerEvents(this, this);
-
-        new HexTeam(HexTeam.TeamColor.RED);
     }
 
     @EventHandler

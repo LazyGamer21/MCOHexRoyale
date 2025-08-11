@@ -2,7 +2,6 @@ package net.mcoasis.mcohexroyale.hexagonal;
 
 import java.util.*;
 
-import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam.TeamColor;
 import org.bukkit.entity.Player;
 
@@ -96,6 +95,12 @@ public class HexManager {
     private final Set<HexTile> hexGrid = new HashSet<>();
     private final Set<HexTile> visited = new HashSet<>();
 
+    /**
+     *
+     * @param q Q axial coordinate for the desired tile
+     * @param r R axial coordinate for the desired tile
+     * @return The {@link HexTile} assigned to the provided axial coordinates
+     */
     public HexTile getHexTile(int q, int r) {
         for (HexTile tile : hexGrid) {
             if (tile.getQ() == q && tile.getR() == r) {
