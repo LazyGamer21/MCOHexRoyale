@@ -1,6 +1,5 @@
-package net.mcoasis.mcohexroyale.commands.tabcompleters;
+package net.mcoasis.mcohexroyale.commands;
 
-import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;

@@ -2,7 +2,11 @@ package net.mcoasis.mcohexroyale.hexagonal;
 
 import java.util.*;
 
+import net.mcoasis.mcohexroyale.datacontainers.PlayerFlagData;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam.TeamColor;
+import net.mcoasis.mcohexroyale.listeners.PlayerInteractListener;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class HexManager {
@@ -56,22 +60,37 @@ public class HexManager {
 
     // -- == HexTile Stuff == --
 
+    private HashMap<UUID, PlayerFlagData> settingTileFlag = new HashMap<>();
+
+    /**
+     *
+     * @param player
+     * @param tile
+     * @param settingPole If the player is setting the pole -- if false it means they're setting the flag.
+     *                    This will be taken out since in the future they will always be setting the pole.
+     *                    Flags will eventually set their own non-poles (the flag part) from the WorldEdit schematics
+     */
+    public void setPlayerSettingFlag(Player player, HexTile tile, boolean settingPole) {
+        settingTileFlag.put(player.getUniqueId(), new PlayerFlagData(tile, settingPole));
+        player.sendMessage(ChatColor.GRAY + "Punch a Block to set Flag Corner 1 for Tile (" + ChatColor.YELLOW + tile.getQ() + ", " + tile.getR() + ChatColor.GRAY + ") -- Right-Click to Cancel");
+    }
+
     /**
      * @implNote Populates the {@link HexManager}'s hexGrid Set with new {@link HexTile}s while also
      * giving the 4 corners their respective {@link HexTeam}s
      */
     public void populateGrid() {
-        new HexTile(3, -2, getTeam(TeamColor.YELLOW)); // YELLOW Team
+        getTeam(TeamColor.YELLOW).setBaseLocation(new HexTile(3, -2, getTeam(TeamColor.YELLOW))); // YELLOW Team
 
         new HexTile(2, 0, null);
         new HexTile(2, -1, null);
         new HexTile(2, -2, null);
 
-        new HexTile(1, 0, getTeam(TeamColor.RED)); // RED Team
+        new HexTile(1, 0, null);
         new HexTile(1, -1, null);
         new HexTile(1, -2, null);
         new HexTile(1, 1, null);
-        new HexTile(1, 2, null);
+        getTeam(TeamColor.RED).setBaseLocation(new HexTile(1, 2, getTeam(TeamColor.RED))); // RED Team
 
         new HexTile(0, 0, null);
         new HexTile(0, -1, null);
@@ -79,9 +98,9 @@ public class HexManager {
         new HexTile(0, 1, null);
         new HexTile(0, 2, null);
 
-        new HexTile(-1, 0, getTeam(TeamColor.BLUE)); // BLUE Team
+        new HexTile(-1, 0, null);
         new HexTile(-1, -1, null);
-        new HexTile(-1, -2, null);
+        getTeam(TeamColor.RED).setBaseLocation(new HexTile(-1, -2, getTeam(TeamColor.BLUE))); // BLUE Team
         new HexTile(-1, 1, null);
         new HexTile(-1, 2, null);
 
@@ -89,7 +108,7 @@ public class HexManager {
         new HexTile(-2, 1, null);
         new HexTile(-2, 2, null);
 
-        new HexTile(-3, 2, getTeam(TeamColor.GREEN)); // GREEN Team
+        getTeam(TeamColor.GREEN).setBaseLocation(new HexTile(-3, 2, getTeam(TeamColor.GREEN))); // GREEN Team
     }
 
     private final Set<HexTile> hexGrid = new HashSet<>();
@@ -110,20 +129,6 @@ public class HexManager {
         return null; // Not found
     }
 
-    // Perform DFS to find if there's a path from start to end with the same color
-    public boolean areConnected(HexTile start, HexTile end) {
-        // Ensure the start and end are within the grid
-        if (!hexGrid.contains(start) || !hexGrid.contains(end)) {
-            return false;
-        }
-
-        // Get the color of the start tile
-        TeamColor targetColor = start.getCurrentTeam().getTeamColor();
-        visited.clear(); // Clear visited set to ensure fresh DFS
-        return dfs(start, end, targetColor);
-    }
-
-
     private final int[][] DIRECTIONS = {
             {1, 0},   // East
             {1, -1},  // Southeast
@@ -133,49 +138,52 @@ public class HexManager {
             {0, 1}    // Northeast
     };
 
-    // Depth-First Search to find a connected path
+    public boolean areConnected(HexTile start, HexTile end) {
+        // Ensure the start and end are within the grid
+        if (!hexGrid.contains(start) || !hexGrid.contains(end)) {
+            return false;
+        }
+        if (start.getCurrentTeam() == null || end.getCurrentTeam() == null) {
+            return false;
+        }
+
+        // Both must be the same color
+        TeamColor targetColor = start.getCurrentTeam().getTeamColor();
+        if (end.getCurrentTeam().getTeamColor() != targetColor) {
+            return false;
+        }
+
+        visited.clear();
+        return dfs(start, end, targetColor);
+    }
+
     private boolean dfs(HexTile current, HexTile end, TeamColor targetColor) {
-        // If we reached the target, return true
         if (current.equals(end)) {
             return true;
         }
 
-        // Mark the current tile as visited
         visited.add(current);
 
-        // Explore neighbors
         for (int[] direction : DIRECTIONS) {
             int nq = current.getQ() + direction[0];
             int nr = current.getR() + direction[1];
-            HexTile neighbor = new HexTile(nq, nr);
 
-            // Check if the neighbor is in the grid, has the same color, and hasn't been visited yet
-            if (hexGrid.contains(neighbor) && !visited.contains(neighbor) && neighbor.getCurrentTeam().getTeamColor() == targetColor) {
-                // Recursively check if the path exists through this neighbor
+            // Lookup neighbor instead of creating a new HexTile
+            HexTile neighbor = getHexTile(nq, nr);
+
+            if (neighbor != null
+                    && !visited.contains(neighbor)
+                    && neighbor.getCurrentTeam() != null
+                    && neighbor.getCurrentTeam().getTeamColor() == targetColor) {
+
                 if (dfs(neighbor, end, targetColor)) {
                     return true;
                 }
             }
         }
 
-        // If no path is found, return false
         return false;
     }
-
-    // Example usage
-    /*public static void main(String[] args) {
-        HexTileManager grid = HexTileManager.getInstance();
-        grid.populateGrid();
-
-        // Example of checking if two hexagons are connected by the same color
-        HexCoordinate start = new HexCoordinate(1, 0);
-        HexCoordinate end = new HexCoordinate(1, -2);
-        System.out.println("Hex (1,0) and Hex (1,-2) connected: " + grid.areConnected(start, end)); // true (RED path)
-
-        start = new HexCoordinate(1, 0);
-        end = new HexCoordinate(-1, -2);
-        System.out.println("Hex (1,0) and Hex (-1,-2) connected: " + grid.areConnected(start, end)); // false (RED vs BLUE)
-    }*/
 
     // -- == HexTile Stuff == --
 
@@ -187,5 +195,9 @@ public class HexManager {
 
     public Set<HexTeam> getTeams() {
         return teams;
+    }
+
+    public HashMap<UUID, PlayerFlagData> getSettingTileFlag() {
+        return settingTileFlag;
     }
 }

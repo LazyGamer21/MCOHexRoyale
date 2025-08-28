@@ -10,6 +10,7 @@ public class HexTeam {
 
     private final HashSet<Player> members = new HashSet<>();
     private final TeamColor teamColor;
+    private HexTile baseLocation;
 
     public HexTeam(TeamColor teamColor) {
         this.teamColor = teamColor;
@@ -60,6 +61,9 @@ public class HexTeam {
      * @param player The player to add to this {@link HexTeam}'s set of members
      */
     public void addMember(Player player) {
+        for (HexTeam team : HexManager.getInstance().getTeams()) {
+            team.getMembers().remove(player);
+        }
         members.add(player);
     }
 
@@ -71,5 +75,13 @@ public class HexTeam {
 
     public TeamColor getTeamColor() {
         return teamColor;
+    }
+
+    public HexTile getBaseLocation() {
+        return baseLocation;
+    }
+
+    public void setBaseLocation(HexTile baseLocation) {
+        this.baseLocation = baseLocation;
     }
 }

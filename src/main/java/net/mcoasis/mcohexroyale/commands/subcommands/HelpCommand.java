@@ -1,6 +1,5 @@
 package net.mcoasis.mcohexroyale.commands.subcommands;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -19,9 +18,7 @@ public class HelpCommand implements SubCommand {
     public void execute(CommandSender sender, String[] args) {
 
         sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "HexRoyale Commands:");
-        sender.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + " >> " + ChatColor.RESET + ChatColor.GRAY + "/hexroyale start - Start the game");
-        sender.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + " >> " + ChatColor.RESET + ChatColor.GRAY + "/hexroyale flag - Modify flags");
-        sender.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + " >> " + ChatColor.RESET + ChatColor.GRAY + "/hexroyale end - End the game");
+        sender.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + " >> " + ChatColor.RESET + ChatColor.GRAY + "/hexroyale gui - access all controls through gui");
         sender.sendMessage(ChatColor.YELLOW + "For more information on a specific command use that command's help function");
 
     }

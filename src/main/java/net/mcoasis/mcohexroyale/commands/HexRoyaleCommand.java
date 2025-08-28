@@ -17,7 +17,7 @@ public class HexRoyaleCommand implements CommandExecutor {
     public HexRoyaleCommand() {
         // Register subcommands
         subCommands.put("help", new HelpCommand());
-        subCommands.put("flag", new FlagCommand());
+        subCommands.put("gui", new GuiCommand());
     }
 
     public Map<String, SubCommand> getSubCommands() {
