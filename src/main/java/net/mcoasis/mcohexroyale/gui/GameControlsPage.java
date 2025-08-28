@@ -1,4 +1,4 @@
-package net.mcoasis.mcohexroyale.lazygui.guipages;
+package net.mcoasis.mcohexroyale.gui;
 
 import me.ericdavis.lazygui.item.*;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
@@ -13,7 +13,7 @@ public class GameControlsPage extends AbstractGuiPage {
     public static String pageId = "game_controls";
 
     public GameControlsPage() {
-        super(MCOHexRoyale.getInstance(), true, false);
+        super(MCOHexRoyale.getInstance(), true, false, MainPage.pageId, true);
     }
 
     @Override

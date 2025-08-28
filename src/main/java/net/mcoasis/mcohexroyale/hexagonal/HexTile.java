@@ -1,6 +1,7 @@
 package net.mcoasis.mcohexroyale.hexagonal;
 
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
+import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -128,18 +129,23 @@ public class HexTile {
             // Handle percentage updates
             if (capturingTeam != null) {
                 if (currentTeam == null || currentTeam.equals(capturingTeam)) {
+                    // return if it's already maxed
+                    if (capturePercentage >= 100.0) return;
+
+                    // increase percentage
                     capturePercentage += percentageChange;
+
+
                     currentTeam = capturingTeam;
                     if (capturePercentage >= 100) {
-                        currentTeamOwns = true;
-                        capturePercentage = 100;
+                        flagOwnershipGained();
                     }
+
                 } else {
                     capturePercentage -= percentageChange;
+
                     if (capturePercentage <= 0) {
-                        currentTeamOwns = false;
-                        currentTeam = null;
-                        capturePercentage = 0;
+                        flagOwnershipGone();
                     }
                 }
             }
@@ -149,6 +155,18 @@ public class HexTile {
                     + (currentTeam == null ? ChatColor.GRAY : currentTeam.getTeamColor().getColor())
                     + String.format("%.2f", capturePercentage));
         }
+    }
+
+    private void flagOwnershipGone() {
+        currentTeamOwns = false;
+        currentTeam = null;
+        capturePercentage = 0;
+    }
+
+    private void flagOwnershipGained() {
+        currentTeamOwns = true;
+        capturePercentage = 100;
+        Bukkit.getPluginManager().callEvent(new HexCaptureEvent(currentTeam,this));
     }
 
     private void setCapturers() {

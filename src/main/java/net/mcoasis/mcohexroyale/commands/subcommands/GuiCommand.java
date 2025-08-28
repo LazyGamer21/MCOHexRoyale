@@ -1,8 +1,8 @@
 package net.mcoasis.mcohexroyale.commands.subcommands;
 
 import me.ericdavis.lazygui.test.GuiManager;
-import net.mcoasis.mcohexroyale.lazygui.guipages.GameControlsPage;
-import net.mcoasis.mcohexroyale.lazygui.guipages.TilesPage;
+import net.mcoasis.mcohexroyale.gui.MainPage;
+import net.mcoasis.mcohexroyale.gui.TilesPage;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -28,8 +28,9 @@ public class GuiCommand implements SubCommand{
             return;
         }
 
-        if (!GuiManager.getInstance().openPage(TilesPage.pageId, player)) {
+        if (!GuiManager.getInstance().openPage(MainPage.pageId, player)) {
             Bukkit.broadcastMessage(ChatColor.RED + "An Error Occurred: Could not open GUI");
+            Bukkit.getLogger().warning("Could not open page -- ensure it is created in main plugin class");
         }
 
         /*String arg1 = ChatColor.stripColor(args[0].toLowerCase());

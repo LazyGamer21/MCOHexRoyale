@@ -1,4 +1,4 @@
-package net.mcoasis.mcohexroyale.lazygui.guipages;
+package net.mcoasis.mcohexroyale.gui;
 
 import me.ericdavis.lazygui.item.GuiItem;
 import me.ericdavis.lazygui.item.ItemBuilder;
@@ -19,7 +19,7 @@ public class TilesPage extends AbstractGuiPage {
     int slot;
 
     public TilesPage() {
-        super(MCOHexRoyale.getInstance(), false, true);
+        super(MCOHexRoyale.getInstance(), false, true, MainPage.pageId, true);
     }
 
     @Override

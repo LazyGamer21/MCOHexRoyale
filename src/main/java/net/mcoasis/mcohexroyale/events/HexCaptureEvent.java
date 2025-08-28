@@ -2,6 +2,7 @@ package net.mcoasis.mcohexroyale.events;
 
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
+import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -11,14 +12,16 @@ import javax.annotation.Nullable;
 public class HexCaptureEvent extends Event {
 
     private static final HandlerList HANDLERS = new HandlerList();
-    private final Player player;
+    private final HexTeam team;
+    private final HexTile tile;
 
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
-    public HexCaptureEvent(Player player) {
-        this.player = player;
+    public HexCaptureEvent(HexTeam team, HexTile tile) {
+        this.team = team;
+        this.tile = tile;
     }
 
     @Override
@@ -26,12 +29,12 @@ public class HexCaptureEvent extends Event {
         return HANDLERS;
     }
 
-    public Player getPlayer() {
-        return this.player;
+    public HexTeam getTeam() {
+        return this.team;
     }
 
-    @Nullable public HexTeam getTeam() {
-        return HexManager.getInstance().getPlayerTeam(player);
+    public HexTile getTile() {
+        return this.tile;
     }
 
 }

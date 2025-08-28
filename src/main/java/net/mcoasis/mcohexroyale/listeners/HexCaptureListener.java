@@ -12,11 +12,10 @@ public class HexCaptureListener implements Listener {
 
     @EventHandler
     public void onHexCapture(HexCaptureEvent e) {
-        Player p = e.getPlayer();
         HexTeam team = e.getTeam();
+        String color = team.getTeamColor().getColor();
 
-        Bukkit.broadcastMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + p.getDisplayName() + ChatColor.RESET + ChatColor.YELLOW + " has captured the point!");
-        if (team != null) Bukkit.broadcastMessage(team.getTeamColor().getColor() + ChatColor.BOLD + team.getTeamColor().getName() + ChatColor.RESET + ChatColor.YELLOW + " now owns the tile!");
+        Bukkit.broadcastMessage(color + ChatColor.BOLD + team.getTeamColor().getName() + " Team" + ChatColor.RESET + ChatColor.GRAY + " has captured the point (" + color + e.getTile().getQ() + ", " + e.getTile().getR() + ChatColor.GRAY + ")!");
     }
 
 }

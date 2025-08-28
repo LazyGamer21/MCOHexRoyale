@@ -1,19 +1,19 @@
 package net.mcoasis.mcohexroyale;
 
+import com.sun.tools.javac.Main;
 import me.ericdavis.lazygui.LazyGui;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleTabCompleter;
-import net.mcoasis.mcohexroyale.hexagonal.HexFlag;
+import net.mcoasis.mcohexroyale.gui.MainPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
-import net.mcoasis.mcohexroyale.lazygui.guipages.TilesPage;
-import net.mcoasis.mcohexroyale.lazygui.guipages.GameControlsPage;
+import net.mcoasis.mcohexroyale.gui.TilesPage;
+import net.mcoasis.mcohexroyale.gui.GameControlsPage;
 import net.mcoasis.mcohexroyale.listeners.HexCaptureListener;
 import net.mcoasis.mcohexroyale.listeners.PlayerInteractListener;
 import org.bukkit.*;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -42,6 +42,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
         new GameControlsPage();
         new TilesPage();
+        new MainPage();
 
         new HexTeam(HexTeam.TeamColor.RED);
         new HexTeam(HexTeam.TeamColor.BLUE);
@@ -67,9 +68,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
                     String colorToSpawn = tile.isCurrentTeamOwns() ? tile.getCurrentTeam().getTeamColor().getName() : "";
                     spawnParticles(tile.getFlagLocation(), CAPTURE_DISTANCE, colorToSpawn);
                 }
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    GuiManager.getInstance().refreshPage(TilesPage.pageId, p);
-                }
+                GuiManager.getInstance().refreshPages();
             }
         }, 0, FLAG_CAPTURE_TIMER);
     }
