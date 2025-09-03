@@ -6,6 +6,7 @@ import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleTabCompleter;
 import net.mcoasis.mcohexroyale.gui.MainPage;
 import net.mcoasis.mcohexroyale.gui.main.TeamsPage;
+import net.mcoasis.mcohexroyale.gui.main.teams.SingleTeamPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
@@ -80,6 +81,8 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         new GameControlsPage();
         new TilesPage();
         new TeamsPage();
+
+        new SingleTeamPage();
     }
 
     //! next make a way to save flags so they can easily just be loaded, either through the config, SQLite, or worldedit schematics

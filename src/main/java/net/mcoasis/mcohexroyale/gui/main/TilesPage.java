@@ -21,7 +21,7 @@ public class TilesPage extends AbstractGuiPage {
     int slot;
 
     public TilesPage() {
-        super(MCOHexRoyale.getInstance(), false, true, MainPage.pageId, true);
+        super(MCOHexRoyale.getInstance(), false, false, MainPage.pageId, true);
     }
 
     @Override
@@ -128,7 +128,6 @@ public class TilesPage extends AbstractGuiPage {
         })
                 .setName(color + q + ", " + r)
                 //! tile.getCapturingPlayersAmount() does not update if nobody is in the circle so it stays 1, make it update for this
-                .setLore(loreColor + tile.getCapturingPlayersAmount() + " : " + String.format("%.2f", tile.getCapturePercentage()))
-                .build());
+                .setLore(loreColor + tile.getCapturingPlayersAmount() + " : " + String.format("%.2f", tile.getCapturePercentage())));
     }
 }

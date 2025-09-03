@@ -31,11 +31,11 @@ public class GameControlsPage extends AbstractGuiPage {
     protected void assignItems() {
         assignItem(20, new GuiItem(Material.GREEN_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GREEN + "Starting the Game...");
-        }).setName(ChatColor.GREEN + "Start").build());
+        }).setName(ChatColor.GREEN + "Start"));
 
         assignItem(24, new GuiItem(Material.RED_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GREEN + "Stopping the Game...");
-        }).setName(ChatColor.RED + "Stop").build());
+        }).setName(ChatColor.RED + "Stop"));
     }
 
     @Override

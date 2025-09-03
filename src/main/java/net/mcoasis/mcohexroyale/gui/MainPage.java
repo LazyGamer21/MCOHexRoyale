@@ -5,6 +5,7 @@ import me.ericdavis.lazygui.test.AbstractGuiPage;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
+import net.mcoasis.mcohexroyale.gui.main.TeamsPage;
 import net.mcoasis.mcohexroyale.gui.main.TilesPage;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -18,7 +19,7 @@ public class MainPage extends AbstractGuiPage {
     public static String pageId = "main";
 
     public MainPage() {
-        super(MCOHexRoyale.getInstance(), true, true);
+        super(MCOHexRoyale.getInstance(), true, false);
     }
 
     @Override
@@ -36,18 +37,17 @@ public class MainPage extends AbstractGuiPage {
         assignItem(20, new GuiItem(Material.STONE, e -> {
             Player player = (Player) e.getWhoClicked();
             GuiManager.getInstance().openPage(TilesPage.pageId, player);
-        }).setName(ChatColor.GOLD + "Tile Manager").build());
+        }).setName(ChatColor.GOLD + "Tile Manager"));
 
         assignItem(22, new GuiItem(Material.STONE, e -> {
             Player player = (Player) e.getWhoClicked();
-            player.closeInventory();
-            player.sendMessage(ChatColor.RED + "Not implemented yet...");
-        }).setName(ChatColor.GOLD + "Teams").build());
+            GuiManager.getInstance().openPage(TeamsPage.pageId, player);
+        }).setName(ChatColor.GOLD + "Teams"));
 
         assignItem(24, new GuiItem(Material.STONE, e -> {
             Player player = (Player) e.getWhoClicked();
             GuiManager.getInstance().openPage(GameControlsPage.pageId, player);
-        }).setName(ChatColor.GOLD + "Game Controls").build());
+        }).setName(ChatColor.GOLD + "Game Controls"));
     }
 
     @Override
