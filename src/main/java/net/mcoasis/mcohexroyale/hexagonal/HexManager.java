@@ -168,13 +168,15 @@ public class HexManager {
             return false;
         }
 
-        Bukkit.broadcastMessage("testing base tile: " + base.getQ() + ", " + base.getR() + " with tile: " + startTile.getQ() + ", " + startTile.getR());
+        //! debugging
+        //Bukkit.broadcastMessage("testing base tile: " + base.getQ() + ", " + base.getR() + " with tile: " + startTile.getQ() + ", " + startTile.getR());
 
         TeamColor teamColor = team.getTeamColor();
 
         // Quick return: if the tile is already the team's color, then just use areConnected
         if (startTile.getCurrentTeam() != null && startTile.getCurrentTeam().getTeamColor().equals(teamColor)) {
-            Bukkit.broadcastMessage("quick return");
+            //! debugging
+            //Bukkit.broadcastMessage("quick return");
             return areConnected(startTile, base);
         }
 
@@ -190,7 +192,8 @@ public class HexManager {
             HexTile current = stack.pop();
 
             if (current.equals(base)) {
-                Bukkit.broadcastMessage("path found");
+                //! debugging
+                //Bukkit.broadcastMessage("path found");
                 return true; // Path found!
             }
 

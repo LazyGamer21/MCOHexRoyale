@@ -1,15 +1,17 @@
 package net.mcoasis.mcohexroyale.gui;
 
 import me.ericdavis.lazygui.item.GuiItem;
-import me.ericdavis.lazygui.item.ItemBuilder;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
+import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
+import net.mcoasis.mcohexroyale.gui.main.TilesPage;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.List;
 
 public class MainPage extends AbstractGuiPage {
 
@@ -31,33 +33,31 @@ public class MainPage extends AbstractGuiPage {
 
     @Override
     protected void assignItems() {
-        itemToAssign = new ItemBuilder(Material.STONE)
-                .setName(ChatColor.GOLD + "Tile Manager").build();
-        new GuiItem(this, 20, e -> {
+        assignItem(20, new GuiItem(Material.STONE, e -> {
             Player player = (Player) e.getWhoClicked();
             GuiManager.getInstance().openPage(TilesPage.pageId, player);
-        });
+        }).setName(ChatColor.GOLD + "Tile Manager").build());
 
-        itemToAssign = new ItemBuilder(Material.STONE)
-                .setName(ChatColor.GOLD + "Teams").build();
-        new GuiItem(this, 22, e -> {
+        assignItem(22, new GuiItem(Material.STONE, e -> {
             Player player = (Player) e.getWhoClicked();
             player.closeInventory();
             player.sendMessage(ChatColor.RED + "Not implemented yet...");
-            //GuiManager.getInstance().openPage(TeamsPage.pageId, player);
-        });
+        }).setName(ChatColor.GOLD + "Teams").build());
 
-        itemToAssign = new ItemBuilder(Material.STONE)
-                .setName(ChatColor.GOLD + "Game Controls").build();
-        new GuiItem(this, 24, e -> {
+        assignItem(24, new GuiItem(Material.STONE, e -> {
             Player player = (Player) e.getWhoClicked();
             GuiManager.getInstance().openPage(GameControlsPage.pageId, player);
-        });
+        }).setName(ChatColor.GOLD + "Game Controls").build());
     }
 
     @Override
     public String getPageIdentifier() {
         return pageId;
+    }
+
+    @Override
+    protected List<GuiItem> getListedButtons() {
+        return null;
     }
 
     @Override

@@ -1,16 +1,16 @@
 package net.mcoasis.mcohexroyale;
 
-import com.sun.tools.javac.Main;
 import me.ericdavis.lazygui.LazyGui;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleTabCompleter;
 import net.mcoasis.mcohexroyale.gui.MainPage;
+import net.mcoasis.mcohexroyale.gui.main.TeamsPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
-import net.mcoasis.mcohexroyale.gui.TilesPage;
-import net.mcoasis.mcohexroyale.gui.GameControlsPage;
+import net.mcoasis.mcohexroyale.gui.main.TilesPage;
+import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
 import net.mcoasis.mcohexroyale.listeners.HexCaptureListener;
 import net.mcoasis.mcohexroyale.listeners.PlayerInteractListener;
 import org.bukkit.*;
@@ -75,9 +75,11 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     private void registerGui() {
         new LazyGui(this);
 
+        new MainPage();
+
         new GameControlsPage();
         new TilesPage();
-        new MainPage();
+        new TeamsPage();
     }
 
     //! next make a way to save flags so they can easily just be loaded, either through the config, SQLite, or worldedit schematics

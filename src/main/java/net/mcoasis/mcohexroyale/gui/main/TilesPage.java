@@ -1,9 +1,9 @@
-package net.mcoasis.mcohexroyale.gui;
+package net.mcoasis.mcohexroyale.gui.main;
 
 import me.ericdavis.lazygui.item.GuiItem;
-import me.ericdavis.lazygui.item.ItemBuilder;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
+import net.mcoasis.mcohexroyale.gui.MainPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
@@ -11,11 +11,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
+
+import java.util.List;
 
 public class TilesPage extends AbstractGuiPage {
 
-    public static String pageId = "tiles";
+    public static String pageId = "main.tiles";
 
     int slot;
 
@@ -76,6 +77,11 @@ public class TilesPage extends AbstractGuiPage {
         return pageId;
     }
 
+    @Override
+    protected List<GuiItem> getListedButtons() {
+        return null;
+    }
+
     private void setFlagButton(int q, int r) {
         slot += 2;
 
@@ -116,20 +122,13 @@ public class TilesPage extends AbstractGuiPage {
         if (tile.getCurrentTeam() == null || !tile.isCurrentTeamOwns()) color = ChatColor.GRAY + "";
         else color = tile.getCurrentTeam().getTeamColor().getColor();
 
-        itemToAssign = new ItemBuilder(material)
+        assignItem(slot, new GuiItem(material, e -> {
+            e.getWhoClicked().closeInventory();
+            HexManager.getInstance().setPlayerSettingFlag((Player) e.getWhoClicked(), tile, true);
+        })
                 .setName(color + q + ", " + r)
                 //! tile.getCapturingPlayersAmount() does not update if nobody is in the circle so it stays 1, make it update for this
                 .setLore(loreColor + tile.getCapturingPlayersAmount() + " : " + String.format("%.2f", tile.getCapturePercentage()))
-                .build();
-
-        new GuiItem(this, slot, e -> {
-            e.getWhoClicked().closeInventory();
-            HexManager.getInstance().setPlayerSettingFlag((Player) e.getWhoClicked(), tile, true);
-        });
-    }
-
-    @Override
-    public Inventory getInventory() {
-        return null;
+                .build());
     }
 }

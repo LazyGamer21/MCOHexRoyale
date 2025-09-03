@@ -167,7 +167,7 @@ public class HexTile {
                 if (member.getLocation().distance(flagLocation) > MCOHexRoyale.CAPTURE_DISTANCE) {
                     continue;
                 }
-                if (!HexManager.getInstance().canCapture(team, this)) continue;
+                //! if (!HexManager.getInstance().canCapture(team, this)) continue;
                 capturingPlayers.put(member, team);
             }
         }

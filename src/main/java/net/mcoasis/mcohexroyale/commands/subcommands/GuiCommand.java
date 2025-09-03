@@ -2,7 +2,6 @@ package net.mcoasis.mcohexroyale.commands.subcommands;
 
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.gui.MainPage;
-import net.mcoasis.mcohexroyale.gui.TilesPage;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
