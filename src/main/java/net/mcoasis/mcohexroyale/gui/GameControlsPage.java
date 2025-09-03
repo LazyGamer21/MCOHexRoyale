@@ -7,6 +7,7 @@ import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 
 public class GameControlsPage extends AbstractGuiPage {
 
@@ -66,4 +67,8 @@ public class GameControlsPage extends AbstractGuiPage {
         return pageId;
     }
 
+    @Override
+    public Inventory getInventory() {
+        return null;
+    }
 }

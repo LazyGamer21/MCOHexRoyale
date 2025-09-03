@@ -38,26 +38,13 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         // populate the grid before other stuff so it can be used
         HexManager.getInstance().populateGrid();
 
-        new LazyGui(this);
+        registerGui();
 
-        new GameControlsPage();
-        new TilesPage();
-        new MainPage();
+        registerCommandsAndListeners();
 
-        new HexTeam(HexTeam.TeamColor.RED);
-        new HexTeam(HexTeam.TeamColor.BLUE);
-        new HexTeam(HexTeam.TeamColor.GREEN);
-        new HexTeam(HexTeam.TeamColor.YELLOW);
-
-        // register commands
-        HexRoyaleCommand hexRoyaleCommand = new HexRoyaleCommand();
-        getCommand("hexroyale").setExecutor(hexRoyaleCommand);
-        getCommand("hexroyale").setTabCompleter(new HexRoyaleTabCompleter(hexRoyaleCommand));
-
-        // register events
-        getServer().getPluginManager().registerEvents(new HexCaptureListener(), this);
-        getServer().getPluginManager().registerEvents(this, this);
-        getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
+        HexTile tile2 = HexManager.getInstance().getHexTile(0, 0);
+        if (HexManager.getInstance().canCapture(HexManager.getInstance().getTeam(HexTeam.TeamColor.BLUE), tile2)) Bukkit.broadcastMessage("yessir");
+        else Bukkit.broadcastMessage("nossir");
 
         Bukkit.getScheduler().runTaskTimer(this, new Runnable() {
             @Override
@@ -71,6 +58,26 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
                 GuiManager.getInstance().refreshPages();
             }
         }, 0, FLAG_CAPTURE_TIMER);
+    }
+
+    private void registerCommandsAndListeners() {
+        // register commands
+        HexRoyaleCommand hexRoyaleCommand = new HexRoyaleCommand();
+        getCommand("hexroyale").setExecutor(hexRoyaleCommand);
+        getCommand("hexroyale").setTabCompleter(new HexRoyaleTabCompleter(hexRoyaleCommand));
+
+        // register events
+        getServer().getPluginManager().registerEvents(new HexCaptureListener(), this);
+        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
+    }
+
+    private void registerGui() {
+        new LazyGui(this);
+
+        new GameControlsPage();
+        new TilesPage();
+        new MainPage();
     }
 
     //! next make a way to save flags so they can easily just be loaded, either through the config, SQLite, or worldedit schematics

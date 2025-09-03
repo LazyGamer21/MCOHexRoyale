@@ -5,6 +5,7 @@ import java.util.*;
 import net.mcoasis.mcohexroyale.datacontainers.PlayerFlagData;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam.TeamColor;
 import net.mcoasis.mcohexroyale.listeners.PlayerInteractListener;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -39,6 +40,7 @@ public class HexManager {
         for (HexTeam team : teams) {
             if (team.getTeamColor().equals(color)) return team;
         }
+        Bukkit.broadcastMessage(color.getColor() + "created a new team because couldn't find bruh");
         return new HexTeam(color);
     }
 
@@ -100,7 +102,7 @@ public class HexManager {
 
         new HexTile(-1, 0, null);
         new HexTile(-1, -1, null);
-        getTeam(TeamColor.RED).setBaseLocation(new HexTile(-1, -2, getTeam(TeamColor.BLUE))); // BLUE Team
+        getTeam(TeamColor.BLUE).setBaseLocation(new HexTile(-1, -2, getTeam(TeamColor.BLUE))); // BLUE Team
         new HexTile(-1, 1, null);
         new HexTile(-1, 2, null);
 
@@ -155,6 +157,57 @@ public class HexManager {
 
         visited.clear();
         return dfs(start, end, targetColor);
+    }
+
+    //! not working right now -- false positive -- might be getNeighbors or just the function, both were made with AI -- try using dfs function in this function
+    public boolean canCapture(HexTeam team, HexTile startTile) {
+        HexTile base = team.getBaseTile();
+
+        if (base == null) {
+            Bukkit.getLogger().severe("HexTeam (" + team.getTeamColor().getName() + ") is missing a base tile!");
+            return false;
+        }
+
+        Bukkit.broadcastMessage("testing base tile: " + base.getQ() + ", " + base.getR() + " with tile: " + startTile.getQ() + ", " + startTile.getR());
+
+        TeamColor teamColor = team.getTeamColor();
+
+        // Quick return: if the tile is already the team's color, then just use areConnected
+        if (startTile.getCurrentTeam() != null && startTile.getCurrentTeam().getTeamColor().equals(teamColor)) {
+            Bukkit.broadcastMessage("quick return");
+            return areConnected(startTile, base);
+        }
+
+        // Otherwise, run a search where:
+        // - The first tile (startTile) is allowed to be any color
+        // - All other tiles in the path must match the team color
+        Set<HexTile> visited = new HashSet<>();
+        Deque<HexTile> stack = new ArrayDeque<>();
+        stack.push(startTile);
+        visited.add(startTile);
+
+        while (!stack.isEmpty()) {
+            HexTile current = stack.pop();
+
+            if (current.equals(base)) {
+                Bukkit.broadcastMessage("path found");
+                return true; // Path found!
+            }
+
+            for (HexTile neighbor : current.getNeighbors()) {
+                if (visited.contains(neighbor)) continue;
+
+                // If we're leaving the start tile, enforce teamColor
+                if (!neighbor.equals(startTile) && neighbor.getCurrentTeam() != null && !neighbor.getCurrentTeam().getTeamColor().equals(teamColor)) {
+                    continue;
+                }
+
+                visited.add(neighbor);
+                stack.push(neighbor);
+            }
+        }
+
+        return false; // No valid path to base
     }
 
     private boolean dfs(HexTile current, HexTile end, TeamColor targetColor) {

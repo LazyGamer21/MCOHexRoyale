@@ -3,14 +3,10 @@ package net.mcoasis.mcohexroyale.hexagonal;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class HexTile {
 
@@ -149,11 +145,6 @@ public class HexTile {
                     }
                 }
             }
-
-            // Broadcast main percentage
-            Bukkit.broadcastMessage(ChatColor.GRAY + "Current Percentage (" + ChatColor.AQUA + q + ", " + r + ChatColor.GRAY + "): "
-                    + (currentTeam == null ? ChatColor.GRAY : currentTeam.getTeamColor().getColor())
-                    + String.format("%.2f", capturePercentage));
         }
     }
 
@@ -176,11 +167,30 @@ public class HexTile {
                 if (member.getLocation().distance(flagLocation) > MCOHexRoyale.CAPTURE_DISTANCE) {
                     continue;
                 }
-                //!if (!canCapture(team, tile)) continue;
+                if (!HexManager.getInstance().canCapture(team, this)) continue;
                 capturingPlayers.put(member, team);
             }
         }
     }
+
+    public List<HexTile> getNeighbors() {
+        int[][] directions = {
+                { 1, 0 }, { 1, -1 }, { 0, -1 },
+                { -1, 0 }, { -1, 1 }, { 0, 1 }
+        };
+
+        List<HexTile> neighbors = new ArrayList<>();
+        for (int[] dir : directions) {
+            int neighborQ = q + dir[0];
+            int neighborR = r + dir[1];
+            HexTile neighbor = hexManager.getHexTile(neighborQ, neighborR);
+            if (neighbor != null) {
+                neighbors.add(neighbor);
+            }
+        }
+        return neighbors;
+    }
+
 
     private double calculateChange(int numberOfPlayers) {
         if (numberOfPlayers <= 0) return 1.0; // base case

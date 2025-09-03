@@ -77,7 +77,7 @@ public class HexTeam {
         return teamColor;
     }
 
-    public HexTile getBaseLocation() {
+    public HexTile getBaseTile() {
         return baseLocation;
     }
 

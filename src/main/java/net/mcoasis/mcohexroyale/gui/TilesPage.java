@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 
 public class TilesPage extends AbstractGuiPage {
 
@@ -125,5 +126,10 @@ public class TilesPage extends AbstractGuiPage {
             e.getWhoClicked().closeInventory();
             HexManager.getInstance().setPlayerSettingFlag((Player) e.getWhoClicked(), tile, true);
         });
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return null;
     }
 }

@@ -8,6 +8,7 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class MainPage extends AbstractGuiPage {
@@ -57,5 +58,10 @@ public class MainPage extends AbstractGuiPage {
     @Override
     public String getPageIdentifier() {
         return pageId;
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return null;
     }
 }
