@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.UUID;
 
 public class TilesPage extends AbstractGuiPage {
 
@@ -35,41 +36,41 @@ public class TilesPage extends AbstractGuiPage {
     }
 
     @Override
-    protected void assignItems() {
+    protected void assignItems(UUID playerId) {
         slot = -2;
 
         //* row 1
-        setFlagButton(-1, -2);
-        setFlagButton(0, -2);
-        setFlagButton(1, -2);
-        setFlagButton(2, -2);
-        setFlagButton(3, -2);
+        setFlagButton(-1, -2, playerId);
+        setFlagButton(0, -2, playerId);
+        setFlagButton(1, -2, playerId);
+        setFlagButton(2, -2, playerId);
+        setFlagButton(3, -2, playerId);
 
         //* row 2
-        setFlagButton(-1, -1);
-        setFlagButton(0, -1);
-        setFlagButton(1, -1);
-        setFlagButton(2, -1);
+        setFlagButton(-1, -1, playerId);
+        setFlagButton(0, -1, playerId);
+        setFlagButton(1, -1, playerId);
+        setFlagButton(2, -1, playerId);
 
         //* row 3
-        setFlagButton(-2, 0);
-        setFlagButton(-1, 0);
-        setFlagButton(0, 0);
-        setFlagButton(1, 0);
-        setFlagButton(2, 0);
+        setFlagButton(-2, 0, playerId);
+        setFlagButton(-1, 0, playerId);
+        setFlagButton(0, 0, playerId);
+        setFlagButton(1, 0, playerId);
+        setFlagButton(2, 0, playerId);
 
         //* row 4
-        setFlagButton(-2, 1);
-        setFlagButton(-1, 1);
-        setFlagButton(0, 1);
-        setFlagButton(1, 1);
+        setFlagButton(-2, 1, playerId);
+        setFlagButton(-1, 1, playerId);
+        setFlagButton(0, 1, playerId);
+        setFlagButton(1, 1, playerId);
 
         //* row 5
-        setFlagButton(-3, 2);
-        setFlagButton(-2, 2);
-        setFlagButton(-1, 2);
-        setFlagButton(0, 2);
-        setFlagButton(1, 2);
+        setFlagButton(-3, 2, playerId);
+        setFlagButton(-2, 2, playerId);
+        setFlagButton(-1, 2, playerId);
+        setFlagButton(0, 2, playerId);
+        setFlagButton(1, 2, playerId);
     }
 
     @Override
@@ -82,7 +83,7 @@ public class TilesPage extends AbstractGuiPage {
         return null;
     }
 
-    private void setFlagButton(int q, int r) {
+    private void setFlagButton(int q, int r, UUID playerId) {
         slot += 2;
 
         Material material;
@@ -122,7 +123,7 @@ public class TilesPage extends AbstractGuiPage {
         if (tile.getCurrentTeam() == null || !tile.isCurrentTeamOwns()) color = ChatColor.GRAY + "";
         else color = tile.getCurrentTeam().getTeamColor().getColor();
 
-        assignItem(slot, new GuiItem(material, e -> {
+        assignItem(playerId, slot, new GuiItem(material, e -> {
             e.getWhoClicked().closeInventory();
             HexManager.getInstance().setPlayerSettingFlag((Player) e.getWhoClicked(), tile, true);
         })

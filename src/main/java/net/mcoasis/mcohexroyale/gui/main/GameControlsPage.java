@@ -8,6 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
 import java.util.List;
+import java.util.UUID;
 
 public class GameControlsPage extends AbstractGuiPage {
 
@@ -28,12 +29,12 @@ public class GameControlsPage extends AbstractGuiPage {
     }
 
     @Override
-    protected void assignItems() {
-        assignItem(20, new GuiItem(Material.GREEN_CONCRETE, e -> {
+    protected void assignItems(UUID playerId) {
+        assignItem(playerId, 20, new GuiItem(Material.GREEN_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GREEN + "Starting the Game...");
         }).setName(ChatColor.GREEN + "Start"));
 
-        assignItem(24, new GuiItem(Material.RED_CONCRETE, e -> {
+        assignItem(playerId, 24, new GuiItem(Material.RED_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GREEN + "Stopping the Game...");
         }).setName(ChatColor.RED + "Stop"));
     }

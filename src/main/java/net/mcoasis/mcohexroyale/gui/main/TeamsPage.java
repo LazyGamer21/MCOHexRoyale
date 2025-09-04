@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.UUID;
 
 public class TeamsPage extends AbstractGuiPage {
     public static String pageId = "main.teams";
@@ -32,29 +33,29 @@ public class TeamsPage extends AbstractGuiPage {
     }
 
     @Override
-    protected void assignItems() {
-        assignItem(21, new GuiItem(Material.RED_WOOL, e -> {
+    protected void assignItems(UUID playerId) {
+        assignItem(playerId, 21, new GuiItem(Material.RED_WOOL, e -> {
             SingleTeamPage.teamToOpen = HexTeam.TeamColor.RED;
             GuiManager.getInstance().openPage(SingleTeamPage.pageId, (Player) e.getWhoClicked());
         })
                 .setName(HexTeam.TeamColor.RED.getColor() + HexTeam.TeamColor.RED.getName())
                 .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.RED).getMembers().size()));
 
-        assignItem(23, new GuiItem(Material.LIME_WOOL, e -> {
+        assignItem(playerId, 23, new GuiItem(Material.LIME_WOOL, e -> {
             SingleTeamPage.teamToOpen = HexTeam.TeamColor.GREEN;
             GuiManager.getInstance().openPage(SingleTeamPage.pageId, (Player) e.getWhoClicked());
         })
                 .setName(HexTeam.TeamColor.GREEN.getColor() + HexTeam.TeamColor.GREEN.getName())
                 .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.GREEN).getMembers().size()));
 
-        assignItem(30, new GuiItem(Material.YELLOW_WOOL, e -> {
+        assignItem(playerId, 30, new GuiItem(Material.YELLOW_WOOL, e -> {
             SingleTeamPage.teamToOpen = HexTeam.TeamColor.YELLOW;
             GuiManager.getInstance().openPage(SingleTeamPage.pageId, (Player) e.getWhoClicked());
         })
                 .setName(HexTeam.TeamColor.YELLOW.getColor() + HexTeam.TeamColor.YELLOW.getName())
                 .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.YELLOW).getMembers().size()));
 
-        assignItem(32, new GuiItem(Material.BLUE_WOOL, e -> {
+        assignItem(playerId, 32, new GuiItem(Material.BLUE_WOOL, e -> {
             SingleTeamPage.teamToOpen = HexTeam.TeamColor.BLUE;
             GuiManager.getInstance().openPage(SingleTeamPage.pageId, (Player) e.getWhoClicked());
         })

@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
 import java.util.List;
+import java.util.UUID;
 
 public class MainPage extends AbstractGuiPage {
 
@@ -33,18 +34,18 @@ public class MainPage extends AbstractGuiPage {
     }
 
     @Override
-    protected void assignItems() {
-        assignItem(20, new GuiItem(Material.STONE, e -> {
+    protected void assignItems(UUID playerId) {
+        assignItem(playerId, 20, new GuiItem(Material.STONE, e -> {
             Player player = (Player) e.getWhoClicked();
             GuiManager.getInstance().openPage(TilesPage.pageId, player);
         }).setName(ChatColor.GOLD + "Tile Manager"));
 
-        assignItem(22, new GuiItem(Material.STONE, e -> {
+        assignItem(playerId, 22, new GuiItem(Material.STONE, e -> {
             Player player = (Player) e.getWhoClicked();
             GuiManager.getInstance().openPage(TeamsPage.pageId, player);
         }).setName(ChatColor.GOLD + "Teams"));
 
-        assignItem(24, new GuiItem(Material.STONE, e -> {
+        assignItem(playerId, 24, new GuiItem(Material.STONE, e -> {
             Player player = (Player) e.getWhoClicked();
             GuiManager.getInstance().openPage(GameControlsPage.pageId, player);
         }).setName(ChatColor.GOLD + "Game Controls"));

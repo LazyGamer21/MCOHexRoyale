@@ -6,12 +6,12 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.main.TeamsPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class SingleTeamPage extends AbstractGuiPage {
     public static String pageId = "main.teams.single-team";
@@ -32,7 +32,7 @@ public class SingleTeamPage extends AbstractGuiPage {
     }
 
     @Override
-    protected void assignItems() {
+    protected void assignItems(UUID playerId) {
 
     }
 
@@ -45,17 +45,10 @@ public class SingleTeamPage extends AbstractGuiPage {
     protected List<GuiItem> getListedButtons() {
         List<GuiItem> listedButtons = new ArrayList<>();
 
-        listedButtons.add(new GuiItem(Material.GUNPOWDER, e -> {})
-                .setName("ts is gunpowder, bruh"));
-        listedButtons.add(new GuiItem(Material.GUNPOWDER, e -> {})
-                .setName("ts is gunpowder, bruh"));
-        listedButtons.add(new GuiItem(Material.GUNPOWDER, e -> {})
-                .setName("ts is gunpowder, bruh"));
-
         for (Player p : HexManager.getInstance().getTeam(teamToOpen).getMembers()) {
 
             listedButtons.add(new GuiItem(Material.PLAYER_HEAD, e -> {
-
+                e.getWhoClicked().teleport(p.getLocation());
             }).setName(p.getName()).setSkullOwner(p));
 
         }
