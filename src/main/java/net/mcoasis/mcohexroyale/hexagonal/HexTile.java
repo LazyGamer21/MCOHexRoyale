@@ -48,18 +48,18 @@ public class HexTile {
     }
 
     public void setFlagCorners(Location corner1, Location corner2) {
-        if (this.hexFlag == null) this.hexFlag = new HexFlag(this);
-        this.hexFlag.setCorner1(corner1);
-        this.hexFlag.setCorner2(corner2);
-        this.hexFlag.captureOriginalBlocks();
-        this.hexFlag.spawnDisplays();
+        if (hexFlag == null) hexFlag = new HexFlag(this);
+        hexFlag.setCorner1(corner1);
+        hexFlag.setCorner2(corner2);
+        hexFlag.captureOriginalBlocks();
+        hexFlag.spawnDisplays();
     }
 
     public void setFlagPole(Location corner1, Location corner2) {
-        if (this.hexFlag == null) this.hexFlag = new HexFlag(this);
-        this.hexFlag.setBaseY(corner1.getBlockY());
-        this.hexFlag.setTopY(corner2.getBlockY());
-        this.flagLocation = corner1;
+        if (hexFlag == null) hexFlag = new HexFlag(this);
+        hexFlag.setBase(corner1);
+        hexFlag.setTop(corner2);
+        flagLocation = corner1;
     }
 
     private final HashMap<Player, HexTeam> capturingPlayers = new HashMap<>();
@@ -246,14 +246,19 @@ public class HexTile {
     }
 
     public Location getFlagCorner1() {
-        return hexFlag.getCorner1();
+        return getHexFlag().getCorner1();
     }
 
     public Location getFlagCorner2() {
-        return hexFlag.getCorner2();
+        return getHexFlag().getCorner2();
     }
 
     public HexFlag getHexFlag() {
+        return hexFlag;
+    }
+
+    public HexFlag getOrCreateHexFlag() {
+        if (hexFlag == null) hexFlag = new HexFlag(this);
         return hexFlag;
     }
 

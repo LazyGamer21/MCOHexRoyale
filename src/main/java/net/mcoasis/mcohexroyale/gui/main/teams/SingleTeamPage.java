@@ -6,9 +6,11 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.main.TeamsPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+import javax.swing.plaf.basic.BasicButtonUI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,7 +47,7 @@ public class SingleTeamPage extends AbstractGuiPage {
     protected List<GuiItem> getListedButtons() {
         List<GuiItem> listedButtons = new ArrayList<>();
 
-        for (Player p : HexManager.getInstance().getTeam(teamToOpen).getMembers()) {
+        for (Player p : Bukkit.getOnlinePlayers()) {
 
             listedButtons.add(new GuiItem(Material.PLAYER_HEAD, e -> {
                 e.getWhoClicked().teleport(p.getLocation());

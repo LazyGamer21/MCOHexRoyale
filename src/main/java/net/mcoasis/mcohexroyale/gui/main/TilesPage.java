@@ -1,5 +1,6 @@
 package net.mcoasis.mcohexroyale.gui.main;
 
+import me.ericdavis.lazySelection.LazySelection;
 import me.ericdavis.lazygui.item.GuiItem;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
@@ -124,8 +125,11 @@ public class TilesPage extends AbstractGuiPage {
         else color = tile.getCurrentTeam().getTeamColor().getColor();
 
         assignItem(playerId, slot, new GuiItem(material, e -> {
-            e.getWhoClicked().closeInventory();
-            HexManager.getInstance().setPlayerSettingFlag((Player) e.getWhoClicked(), tile, true);
+            Player p = (Player) e.getWhoClicked();
+            p.closeInventory();
+            //HexManager.getInstance().setPlayerSettingFlag((Player) e.getWhoClicked(), tile, true);
+            HexManager.getInstance().getPlayerSettingFlag().put(playerId, tile);
+            LazySelection.setArea(p, tile.getOrCreateHexFlag().getBase(), tile.getOrCreateHexFlag().getTop());
         })
                 .setName(color + q + ", " + r)
                 //! tile.getCapturingPlayersAmount() does not update if nobody is in the circle so it stays 1, make it update for this

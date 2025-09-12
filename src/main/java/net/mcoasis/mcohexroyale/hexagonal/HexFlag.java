@@ -10,7 +10,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -23,15 +22,15 @@ public class HexFlag {
     private final HexTile parentTile;
 
     private final World world;
-    private Location corner1;
-    private Location corner2;
+    private Location corner1 = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
+    private Location corner2 = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
 
     private final List<BlockData> blockDataList = new ArrayList<>();
     private final List<Vector> relativeOffsets = new ArrayList<>();
     private final List<BlockDisplay> flagDisplays = new ArrayList<>();
 
-    private double baseY = Double.NEGATIVE_INFINITY;
-    private double topY = Double.NEGATIVE_INFINITY;
+    private Location base = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
+    private Location top = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
 
     private BukkitRunnable updateFlagRunnable;
 
@@ -134,7 +133,7 @@ public class HexFlag {
     // Update flag position based on capturePercentage
     public void updateFlag() {
         if (flagDisplays.isEmpty())  return;
-        if (baseY == Double.NEGATIVE_INFINITY || topY == Double.NEGATIVE_INFINITY) return;
+        if (locationNotSet(base) || locationNotSet(top)) return;
         if (corner1 == null || corner2 == null) return;
 
         double capturePercentage = parentTile.getCapturePercentage();
@@ -153,9 +152,21 @@ public class HexFlag {
         }
     }
 
+    boolean locationNotSet(Location location) {
+        boolean x = location.getBlockX() == 0;
+        boolean y = location.getBlockY() == 0;
+        boolean z = location.getBlockZ() == 0;
+
+        return x && y && z;
+    }
+
     private double getY(double capturePercentage) {
         double progress = capturePercentage / 100.0;
         double heightOfFlag = abs(corner1.getY() - corner2.getY());
+
+        double baseY = base.getBlockY();
+        double topY = top.getBlockY();
+
         double heightOfPole = baseY + (topY - baseY);
         if (heightOfFlag > heightOfPole) {
             Bukkit.getLogger().warning("[MCOHexRoyale] (Tile " + this.parentTile.getQ() + ", " + this.parentTile.getR() + ") Flag is taller than Pole!");
@@ -219,12 +230,20 @@ public class HexFlag {
         this.corner1 = corner1;
     }
 
-    public void setBaseY(double baseY) {
-        this.baseY = baseY;
+    public void setBase(Location base) {
+        this.base = base;
     }
 
-    public void setTopY(double topY) {
-        this.topY = topY;
+    public void setTop(Location top) {
+        this.top = top;
+    }
+
+    public Location getBase() {
+        return base;
+    }
+
+    public Location getTop() {
+        return top;
     }
 
 }

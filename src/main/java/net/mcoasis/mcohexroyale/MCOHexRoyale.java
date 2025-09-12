@@ -1,9 +1,11 @@
 package net.mcoasis.mcohexroyale;
 
+import me.ericdavis.lazySelection.LazySelection;
 import me.ericdavis.lazygui.LazyGui;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleTabCompleter;
+import net.mcoasis.mcohexroyale.events.listeners.lazyselection.AreaCompleteListener;
 import net.mcoasis.mcohexroyale.gui.MainPage;
 import net.mcoasis.mcohexroyale.gui.main.TeamsPage;
 import net.mcoasis.mcohexroyale.gui.main.teams.SingleTeamPage;
@@ -12,8 +14,7 @@ import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import net.mcoasis.mcohexroyale.gui.main.TilesPage;
 import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
-import net.mcoasis.mcohexroyale.listeners.HexCaptureListener;
-import net.mcoasis.mcohexroyale.listeners.PlayerInteractListener;
+import net.mcoasis.mcohexroyale.events.listeners.HexCaptureListener;
 import org.bukkit.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -39,14 +40,27 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         // populate the grid before other stuff so it can be used
         HexManager.getInstance().populateGrid();
 
-        registerGui();
-
+        registerLibraries();
+        registerGuiPages();
         registerCommandsAndListeners();
+        startRunnable();
 
-        HexTile tile2 = HexManager.getInstance().getHexTile(0, 0);
+        /*HexTile tile2 = HexManager.getInstance().getHexTile(0, 0);
         if (HexManager.getInstance().canCapture(HexManager.getInstance().getTeam(HexTeam.TeamColor.BLUE), tile2)) Bukkit.broadcastMessage("yessir");
-        else Bukkit.broadcastMessage("nossir");
+        else Bukkit.broadcastMessage("nossir");*/
+    }
 
+    @Override
+    public void onDisable() {
+
+        for (HexTile tile : HexManager.getInstance().getHexGrid()) {
+            if (tile.getHexFlag() == null) continue;
+            tile.getHexFlag().restoreOriginalBlocks();
+        }
+
+    }
+
+    private void startRunnable() {
         Bukkit.getScheduler().runTaskTimer(this, new Runnable() {
             @Override
             public void run() {
@@ -70,12 +84,15 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         // register events
         getServer().getPluginManager().registerEvents(new HexCaptureListener(), this);
         getServer().getPluginManager().registerEvents(this, this);
-        getServer().getPluginManager().registerEvents(new PlayerInteractListener(), this);
+        getServer().getPluginManager().registerEvents(new AreaCompleteListener(), this);
     }
 
-    private void registerGui() {
+    private void registerLibraries() {
         new LazyGui(this);
+        new LazySelection(this);
+    }
 
+    private void registerGuiPages() {
         new MainPage();
 
         new GameControlsPage();
@@ -88,14 +105,6 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     //! next make a way to save flags so they can easily just be loaded, either through the config, SQLite, or worldedit schematics
 
     //! the gui only updates for the most recent person to open it
-
-    @Override
-    public void onDisable() {
-        for (HexTile tile : HexManager.getInstance().getHexGrid()) {
-            if (tile.getHexFlag() == null) continue;
-            tile.getHexFlag().restoreOriginalBlocks();
-        }
-    }
 
     @EventHandler
     public void onPlayerBlueTeam(PlayerInteractEvent e) {

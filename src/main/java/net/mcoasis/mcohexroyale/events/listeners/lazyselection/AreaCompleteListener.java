@@ -1,0 +1,57 @@
+package net.mcoasis.mcohexroyale.events.listeners.lazyselection;
+
+import me.ericdavis.lazySelection.events.LazyAreaCompleteEvent;
+import net.mcoasis.mcohexroyale.hexagonal.HexFlag;
+import net.mcoasis.mcohexroyale.hexagonal.HexManager;
+import net.mcoasis.mcohexroyale.hexagonal.HexTile;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+
+import java.util.HashMap;
+import java.util.UUID;
+
+public class AreaCompleteListener implements Listener {
+
+    @EventHandler
+    public void onAreaSet(LazyAreaCompleteEvent e) {
+        Player p = e.getPlayer();
+        UUID playerId = p.getUniqueId();
+        HashMap<UUID, HexTile> playerSettingFlag = HexManager.getInstance().getPlayerSettingFlag();
+
+        if (!playerSettingFlag.containsKey(playerId)) return;
+
+        HexTile flag = playerSettingFlag.get(playerId);
+        playerSettingFlag.remove(playerId);
+
+        boolean sameX = e.getPoint1().getBlockX() == e.getPoint2().getBlockX();
+        boolean sameZ = e.getPoint1().getBlockZ() == e.getPoint2().getBlockZ();
+
+        if (sameX && sameZ) {
+            flag.setFlagPole(e.getPoint1(), e.getPoint2());
+            return;
+        }
+
+        e.setCancelled(true);
+        e.getPlayer().sendMessage(ChatColor.RED + "Flag not Set -- Points must have the same X and Z coordinates");
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

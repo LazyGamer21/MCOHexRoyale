@@ -1,10 +1,9 @@
-package net.mcoasis.mcohexroyale.listeners;
+package net.mcoasis.mcohexroyale.events.listeners;
 
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 

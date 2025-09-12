@@ -2,12 +2,8 @@ package net.mcoasis.mcohexroyale.hexagonal;
 
 import java.util.*;
 
-import net.mcoasis.mcohexroyale.datacontainers.PlayerFlagData;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam.TeamColor;
-import net.mcoasis.mcohexroyale.listeners.PlayerInteractListener;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class HexManager {
@@ -62,19 +58,10 @@ public class HexManager {
 
     // -- == HexTile Stuff == --
 
-    private HashMap<UUID, PlayerFlagData> settingTileFlag = new HashMap<>();
+    private HashMap<UUID, HexTile> settingTileFlag = new HashMap<>();
 
-    /**
-     *
-     * @param player
-     * @param tile
-     * @param settingPole If the player is setting the pole -- if false it means they're setting the flag.
-     *                    This will be taken out since in the future they will always be setting the pole.
-     *                    Flags will eventually set their own non-poles (the flag part) from the WorldEdit schematics
-     */
-    public void setPlayerSettingFlag(Player player, HexTile tile, boolean settingPole) {
-        settingTileFlag.put(player.getUniqueId(), new PlayerFlagData(tile, settingPole));
-        player.sendMessage(ChatColor.GRAY + "Punch a Block to set Flag Corner 1 for Tile (" + ChatColor.YELLOW + tile.getQ() + ", " + tile.getR() + ChatColor.GRAY + ") -- Right-Click to Cancel");
+    public HashMap<UUID, HexTile> getPlayerSettingFlag() {
+        return settingTileFlag;
     }
 
     /**
@@ -251,9 +238,5 @@ public class HexManager {
 
     public Set<HexTeam> getTeams() {
         return teams;
-    }
-
-    public HashMap<UUID, PlayerFlagData> getSettingTileFlag() {
-        return settingTileFlag;
     }
 }
