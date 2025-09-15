@@ -39,28 +39,28 @@ public class TeamsPage extends AbstractGuiPage {
             GuiManager.getInstance().openPage(SingleTeamPage.pageId, (Player) e.getWhoClicked());
         })
                 .setName(HexTeam.TeamColor.RED.getColor() + HexTeam.TeamColor.RED.getName())
-                .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.RED).getMembers().size()));
+                .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.RED).getMembersAlive().size()));
 
         assignItem(playerId, 23, new GuiItem(Material.LIME_WOOL, e -> {
             SingleTeamPage.teamToOpen = HexTeam.TeamColor.GREEN;
             GuiManager.getInstance().openPage(SingleTeamPage.pageId, (Player) e.getWhoClicked());
         })
                 .setName(HexTeam.TeamColor.GREEN.getColor() + HexTeam.TeamColor.GREEN.getName())
-                .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.GREEN).getMembers().size()));
+                .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.GREEN).getMembersAlive().size()));
 
         assignItem(playerId, 30, new GuiItem(Material.YELLOW_WOOL, e -> {
             SingleTeamPage.teamToOpen = HexTeam.TeamColor.YELLOW;
             GuiManager.getInstance().openPage(SingleTeamPage.pageId, (Player) e.getWhoClicked());
         })
                 .setName(HexTeam.TeamColor.YELLOW.getColor() + HexTeam.TeamColor.YELLOW.getName())
-                .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.YELLOW).getMembers().size()));
+                .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.YELLOW).getMembersAlive().size()));
 
         assignItem(playerId, 32, new GuiItem(Material.BLUE_WOOL, e -> {
             SingleTeamPage.teamToOpen = HexTeam.TeamColor.BLUE;
             GuiManager.getInstance().openPage(SingleTeamPage.pageId, (Player) e.getWhoClicked());
         })
                 .setName(HexTeam.TeamColor.BLUE.getColor() + HexTeam.TeamColor.BLUE.getName())
-                .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.BLUE).getMembers().size()));
+                .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.BLUE).getMembersAlive().size()));
     }
 
     @Override

@@ -1,7 +1,6 @@
-package net.mcoasis.mcohexroyale.events.listeners.lazyselection;
+package net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection;
 
 import me.ericdavis.lazySelection.events.LazyAreaCompleteEvent;
-import net.mcoasis.mcohexroyale.hexagonal.HexFlag;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import org.bukkit.ChatColor;

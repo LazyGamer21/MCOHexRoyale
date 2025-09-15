@@ -2,10 +2,12 @@ package net.mcoasis.mcohexroyale.gui.main;
 
 import me.ericdavis.lazygui.item.*;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
+import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.MainPage;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,6 +39,12 @@ public class GameControlsPage extends AbstractGuiPage {
         assignItem(playerId, 24, new GuiItem(Material.RED_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GREEN + "Stopping the Game...");
         }).setName(ChatColor.RED + "Stop"));
+
+        assignItem(playerId, 31, new GuiItem(Material.BEDROCK, e -> {
+            if (e.getWhoClicked() instanceof Player player) {
+                GuiManager.getInstance().openPage(ResetTilesPage.pageId, player);
+            }
+        }).setName(ChatColor.DARK_RED + "RESET ALL TILES"));
     }
 
     @Override

@@ -2,7 +2,9 @@ package net.mcoasis.mcohexroyale.hexagonal;
 
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
+import net.mcoasis.mcohexroyale.hexagonal.HexTeam.TeamColor;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -28,6 +30,8 @@ public class HexTile {
     public static int MAX_FLAG_AREA_VOLUME = 1000;
 
     private HexFlag hexFlag;
+
+    private final Double TEAM_TELEPORT_DISTANCE = 5.0;
 
     public HexTile(int q, int r, HexTeam team) {
         this.hexManager = HexManager.getInstance();
@@ -78,27 +82,31 @@ public class HexTile {
         if (!capturingPlayers.isEmpty()) {
 
             // Count players per team
-            Map<HexTeam.TeamColor, Integer> teamCounts = new EnumMap<>(HexTeam.TeamColor.class);
+            Map<TeamColor, Integer> teamCounts = new EnumMap<>(TeamColor.class);
 
             for (Player capturer : capturingPlayers.keySet()) {
                 HexTeam team = HexManager.getInstance().getPlayerTeam(capturer);
                 if (team == null) continue;
 
-                HexTeam.TeamColor color = team.getTeamColor();
+                TeamColor color = team.getTeamColor();
                 teamCounts.put(color, teamCounts.getOrDefault(color, 0) + 1);
             }
 
             // Track top two counts
-            HexTeam.TeamColor topTeam = null;
+            TeamColor topTeam = null;
             int max = 0;
             int secondMax = 0; // 👈 will hold the "second team" player count
 
-            for (Map.Entry<HexTeam.TeamColor, Integer> entry : teamCounts.entrySet()) {
+
+
+            // get the top 2 teams and subtract second top from top
+            for (Map.Entry<TeamColor, Integer> entry : teamCounts.entrySet()) {
                 int count = entry.getValue();
+                TeamColor teamColor = entry.getKey();
                 if (count > max) {
                     secondMax = max;
                     max = count;
-                    topTeam = entry.getKey();
+                    topTeam = teamColor;
                 } else if (count > secondMax) {
                     secondMax = count;
                 }
@@ -111,16 +119,14 @@ public class HexTile {
                     if (count == max) tiedTeams++;
                 }
 
-                if (tiedTeams > 1) {
-                    capturingTeam = null;
-                } else {
+                if (!(tiedTeams > 1)) {
                     capturingTeam = HexManager.getInstance().getTeam(topTeam);
                 }
             }
 
             // "max" is the number of players in the capturingTeam
             capturingPlayersAmount = max - secondMax;
-            double percentageChange = calculateChange(capturingPlayersAmount);
+            double percentageChange = calculateChange(capturingPlayersAmount) * 20;
 
             // Handle percentage updates
             if (capturingTeam != null) {
@@ -131,18 +137,33 @@ public class HexTile {
                     // increase percentage
                     capturePercentage += percentageChange;
 
-
                     currentTeam = capturingTeam;
                     if (capturePercentage >= 100) {
+                        capturePercentage = 100;
                         flagOwnershipGained();
                     }
+
+                    //! debug
+                    String color = "" + (getCurrentTeam() == null ? ChatColor.GRAY : getCurrentTeam().getTeamColor().getColor());
+                    Bukkit.broadcastMessage(
+                            color + ChatColor.BOLD + "(" + r + ", " + q + ") " + ChatColor.RESET + color + "Capture Percentage: " +
+                                    ChatColor.YELLOW + ChatColor.BOLD + String.format("%.1f", getCapturePercentage())
+                    );
 
                 } else {
                     capturePercentage -= percentageChange;
 
                     if (capturePercentage <= 0) {
+                        capturePercentage = 0;
                         flagOwnershipGone();
                     }
+
+                    //! debug
+                    String color = "" + (getCurrentTeam() == null ? ChatColor.GRAY : getCurrentTeam().getTeamColor().getColor());
+                    Bukkit.broadcastMessage(
+                            color + ChatColor.BOLD + "(" + r + ", " + q + ") " + ChatColor.RESET + color + "Capture Percentage: " +
+                                    ChatColor.YELLOW + ChatColor.BOLD + String.format("%.1f", getCapturePercentage())
+                    );
                 }
             }
         }
@@ -163,10 +184,13 @@ public class HexTile {
     private void setCapturers() {
         capturingPlayers.clear();
         for (HexTeam team : HexManager.getInstance().getTeams()) {
-            for (Player member : team.getMembers()) {
+            for (Player member : team.getMembersAlive().keySet()) {
+                if (team.getMembersAlive().get(member) == false) continue;
+                if (member.getLocation().getWorld() == null || !member.getLocation().getWorld().equals(flagLocation.getWorld())) continue;
                 if (member.getLocation().distance(flagLocation) > MCOHexRoyale.CAPTURE_DISTANCE) {
                     continue;
                 }
+
                 //! if (!HexManager.getInstance().canCapture(team, this)) continue;
                 capturingPlayers.put(member, team);
             }
@@ -213,6 +237,32 @@ public class HexTile {
     @Override
     public int hashCode() {
         return Objects.hash(q, r);
+    }
+
+    private final Random random = new Random();
+
+    /**
+     * Teleports a player to a random spot around their flag
+     *
+     * @param player   the player to teleport
+     */
+    public void teleportToBase(Player player) {
+        // Random angle in radians (0 to 2π)
+        double angle = random.nextDouble() * 2 * Math.PI;
+
+        // Calculate X/Z offset
+        double offsetX = TEAM_TELEPORT_DISTANCE * Math.cos(angle);
+        double offsetZ = TEAM_TELEPORT_DISTANCE * Math.sin(angle);
+
+        // Create new location at same Y level
+        Location target = getFlagLocation().clone().add(offsetX, 0, offsetZ);
+
+        // Keep player facing the same direction
+        target.setYaw(player.getLocation().getYaw());
+        target.setPitch(player.getLocation().getPitch());
+
+        // Teleport
+        player.teleport(target);
     }
 
     // -- == Getters + Setters == --

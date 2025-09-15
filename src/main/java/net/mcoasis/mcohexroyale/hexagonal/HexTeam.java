@@ -2,13 +2,18 @@ package net.mcoasis.mcohexroyale.hexagonal;
 
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Random;
 
 public class HexTeam {
 
-    private final HashSet<Player> members = new HashSet<>();
+    /**
+     * the boolean is if the {@link Player} is alive or not (if they died while their flag was down they are not alive)
+     */
+    private final HashMap<Player, Boolean> membersAlive = new HashMap<>();
     private final TeamColor teamColor;
     private HexTile baseLocation;
 
@@ -61,16 +66,17 @@ public class HexTeam {
      * @param player The player to add to this {@link HexTeam}'s set of members
      */
     public void addMember(Player player) {
+        if (getMembersAlive().containsKey(player)) return;
         for (HexTeam team : HexManager.getInstance().getTeams()) {
-            team.getMembers().remove(player);
+            team.getMembersAlive().remove(player);
         }
-        members.add(player);
+        membersAlive.put(player, true);
     }
 
     // -- == Getters + Setters == --
 
-    public HashSet<Player> getMembers() {
-        return members;
+    public HashMap<Player, Boolean> getMembersAlive() {
+        return membersAlive;
     }
 
     public TeamColor getTeamColor() {
@@ -84,4 +90,10 @@ public class HexTeam {
     public void setBaseLocation(HexTile baseLocation) {
         this.baseLocation = baseLocation;
     }
+
+    public boolean hasBaseCaptured() {
+        return getBaseTile().isCurrentTeamOwns() && getBaseTile().getCurrentTeam().equals(this);
+    }
+
+    Random random = new Random();
 }

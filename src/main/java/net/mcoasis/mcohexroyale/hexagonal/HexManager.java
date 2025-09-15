@@ -47,7 +47,7 @@ public class HexManager {
      */
     public HexTeam getPlayerTeam(Player player) {
         for (HexTeam team : teams) {
-            if (team.getMembers().contains(player)) {
+            if (team.getMembersAlive().containsKey(player)) {
                 return team;
             }
         }
@@ -98,6 +98,11 @@ public class HexManager {
         new HexTile(-2, 2, null);
 
         getTeam(TeamColor.GREEN).setBaseLocation(new HexTile(-3, 2, getTeam(TeamColor.GREEN))); // GREEN Team
+    }
+
+    public void resetAllTiles() {
+        Bukkit.broadcastMessage("reset all tiles -- not implemented yet");
+        Bukkit.getLogger().info("reset all tiles -- not implemented yet");
     }
 
     private final Set<HexTile> hexGrid = new HashSet<>();

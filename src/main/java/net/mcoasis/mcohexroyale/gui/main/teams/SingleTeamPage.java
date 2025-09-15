@@ -10,7 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import javax.swing.plaf.basic.BasicButtonUI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -48,6 +47,8 @@ public class SingleTeamPage extends AbstractGuiPage {
         List<GuiItem> listedButtons = new ArrayList<>();
 
         for (Player p : Bukkit.getOnlinePlayers()) {
+
+            if (!HexManager.getInstance().getPlayerTeam(p).getTeamColor().equals(teamToOpen)) continue;
 
             listedButtons.add(new GuiItem(Material.PLAYER_HEAD, e -> {
                 e.getWhoClicked().teleport(p.getLocation());
