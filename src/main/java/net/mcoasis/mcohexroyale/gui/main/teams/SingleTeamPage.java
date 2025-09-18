@@ -11,20 +11,22 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 public class SingleTeamPage extends AbstractGuiPage {
     public static String pageId = "main.teams.single-team";
-    public static HexTeam.TeamColor teamToOpen = HexTeam.TeamColor.RED;
+    public static HashMap<UUID, HexTeam.TeamColor> teamToOpen = new HashMap<>();
 
     public SingleTeamPage() {
         super(MCOHexRoyale.getInstance(), true, true, TeamsPage.pageId, true);
     }
 
     @Override
-    protected String getDisplayName() {
-        return teamToOpen.getColor() + teamToOpen.getName();
+    protected String getDisplayName(UUID playerId) {
+        teamToOpen.putIfAbsent(playerId, HexTeam.TeamColor.RED);
+        return teamToOpen.get(playerId).getColor() + teamToOpen.get(playerId).getName();
     }
 
     @Override
@@ -48,7 +50,7 @@ public class SingleTeamPage extends AbstractGuiPage {
 
         for (Player p : Bukkit.getOnlinePlayers()) {
 
-            if (!HexManager.getInstance().getPlayerTeam(p).getTeamColor().equals(teamToOpen)) continue;
+            if (!HexManager.getInstance().getPlayerTeam(p).getTeamColor().equals(teamToOpen.get(p.getUniqueId()))) continue;
 
             listedButtons.add(new GuiItem(Material.PLAYER_HEAD, e -> {
                 e.getWhoClicked().teleport(p.getLocation());

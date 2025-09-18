@@ -21,7 +21,7 @@ public class ResetTilesPage extends AbstractGuiPage {
     }
 
     @Override
-    protected String getDisplayName() {
+    protected String getDisplayName(UUID playerId) {
         return ChatColor.DARK_RED + "RESET ALL TILES";
     }
 

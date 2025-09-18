@@ -21,7 +21,7 @@ public class GameControlsPage extends AbstractGuiPage {
     }
 
     @Override
-    public String getDisplayName() {
+    public String getDisplayName(UUID playerId) {
         return ChatColor.BLUE + "Game Controls";
     }
 

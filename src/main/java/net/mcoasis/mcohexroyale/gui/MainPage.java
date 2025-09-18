@@ -24,7 +24,7 @@ public class MainPage extends AbstractGuiPage {
     }
 
     @Override
-    protected String getDisplayName() {
+    protected String getDisplayName(UUID playerId) {
         return ChatColor.BOLD + "" + ChatColor.DARK_AQUA +  "Hex Royale";
     }
 
