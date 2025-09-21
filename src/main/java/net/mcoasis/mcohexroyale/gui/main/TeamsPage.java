@@ -69,7 +69,7 @@ public class TeamsPage extends AbstractGuiPage {
     }
 
     @Override
-    protected List<GuiItem> getListedButtons() {
+    protected List<GuiItem> getListedButtons(UUID playerId) {
         return null;
     }
 }

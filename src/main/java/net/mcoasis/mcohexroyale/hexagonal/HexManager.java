@@ -151,7 +151,6 @@ public class HexManager {
         return dfs(start, end, targetColor);
     }
 
-    //! not working right now -- false positive -- might be getNeighbors or just the function, both were made with AI -- try using dfs function in this function
     public boolean canCapture(HexTeam team, HexTile startTile) {
         HexTile base = team.getBaseTile();
 
@@ -160,15 +159,10 @@ public class HexManager {
             return false;
         }
 
-        //! debugging
-        //Bukkit.broadcastMessage("testing base tile: " + base.getQ() + ", " + base.getR() + " with tile: " + startTile.getQ() + ", " + startTile.getR());
-
         TeamColor teamColor = team.getTeamColor();
 
         // Quick return: if the tile is already the team's color, then just use areConnected
         if (startTile.getCurrentTeam() != null && startTile.getCurrentTeam().getTeamColor().equals(teamColor)) {
-            //! debugging
-            //Bukkit.broadcastMessage("quick return");
             return areConnected(startTile, base);
         }
 
@@ -184,8 +178,6 @@ public class HexManager {
             HexTile current = stack.pop();
 
             if (current.equals(base)) {
-                //! debugging
-                //Bukkit.broadcastMessage("path found");
                 return true; // Path found!
             }
 
@@ -193,9 +185,8 @@ public class HexManager {
                 if (visited.contains(neighbor)) continue;
 
                 // If we're leaving the start tile, enforce teamColor
-                if (!neighbor.equals(startTile) && neighbor.getCurrentTeam() != null && !neighbor.getCurrentTeam().getTeamColor().equals(teamColor)) {
-                    continue;
-                }
+                if (neighbor.getCurrentTeam() == null || !neighbor.getCurrentTeam().getTeamColor().equals(teamColor)) continue;
+                if (!neighbor.isCurrentTeamOwns()) continue;
 
                 visited.add(neighbor);
                 stack.push(neighbor);

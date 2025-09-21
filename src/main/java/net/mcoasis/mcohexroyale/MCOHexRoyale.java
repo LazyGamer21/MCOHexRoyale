@@ -4,25 +4,34 @@ import me.ericdavis.lazySelection.LazySelection;
 import me.ericdavis.lazygui.LazyGui;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.events.listeners.RespawnListener;
+import net.mcoasis.mcohexroyale.events.listeners.custom.HexLossListener;
 import net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection.AreaCompleteListener;
 import net.mcoasis.mcohexroyale.gui.MainPage;
 import net.mcoasis.mcohexroyale.gui.main.ResetTilesPage;
 import net.mcoasis.mcohexroyale.gui.main.TeamsPage;
 import net.mcoasis.mcohexroyale.gui.main.teams.SingleTeamPage;
+import net.mcoasis.mcohexroyale.hexagonal.HexFlag;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import net.mcoasis.mcohexroyale.gui.main.TilesPage;
 import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexCaptureListener;
+import org.antlr.v4.runtime.misc.Pair;
 import org.bukkit.*;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
@@ -32,63 +41,65 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         return instance;
     }
 
-    // 20 is a good value for this, flag capture percentage updates every 20 ticks (1 second)
-    public static int FLAG_CAPTURE_TIMER = 20;
-    public static double CAPTURE_DISTANCE = 10.0;
+    BukkitTask gameUpdater;
 
     @Override
     public void onEnable() {
         instance = this;
 
+        saveDefaultConfig();
+
         // populate the grid before other stuff so it can be used
         HexManager.getInstance().populateGrid();
+
+        loadHexFlags();
 
         registerLibraries();
         registerGuiPages();
         registerCommandsAndListeners();
-        startRunnable();
-
-        //! for testing the dfs implementation, it still doesn't work
-        /*HexTile tile2 = HexManager.getInstance().getHexTile(0, 0);
-        if (HexManager.getInstance().canCapture(HexManager.getInstance().getTeam(HexTeam.TeamColor.BLUE), tile2)) Bukkit.broadcastMessage("yessir");
-        else Bukkit.broadcastMessage("nossir");*/
+        restartRunnable();
     }
 
     @Override
     public void onDisable() {
-
         for (HexTile tile : HexManager.getInstance().getHexGrid()) {
-            if (tile.getHexFlag() == null) continue;
-            tile.getHexFlag().restoreOriginalBlocks();
+            if (tile.getHexFlag() != null) tile.getHexFlag().removeFlag();
         }
-
     }
 
-    private void startRunnable() {
-        Bukkit.getScheduler().runTaskTimer(this, new Runnable() {
+    public void restartRunnable() {
+        if (gameUpdater != null && !gameUpdater.isCancelled()) gameUpdater.cancel();
+
+        reloadConfig();
+
+        gameUpdater = new BukkitRunnable() {
             @Override
             public void run() {
                 for (HexTile tile : HexManager.getInstance().getHexGrid()) {
                     if (tile.getFlagLocation() == null) continue;
                     tile.doCaptureCheck();
                     String colorToSpawn = tile.isCurrentTeamOwns() ? tile.getCurrentTeam().getTeamColor().getName() : "";
-                    spawnParticles(tile.getFlagLocation(), CAPTURE_DISTANCE, colorToSpawn);
+                    spawnParticles(tile.getFlagLocation(), getConfig().getDouble("capture-distance"), colorToSpawn);
+                    tile.updateFlagPosition();
                 }
                 GuiManager.getInstance().refreshPages();
             }
-        }, 0, FLAG_CAPTURE_TIMER);
+        }.runTaskTimer(this, 0, getConfig().getInt("capture-update-timer", 20));
+
+        this.reloadConfig();
     }
 
     private void registerCommandsAndListeners() {
         // register commands
         HexRoyaleCommand hexRoyaleCommand = new HexRoyaleCommand();
-        getCommand("hexroyale").setExecutor(hexRoyaleCommand);
+        getCommand("mcohexroyale").setExecutor(hexRoyaleCommand);
 
         // register events
         getServer().getPluginManager().registerEvents(new HexCaptureListener(), this);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new AreaCompleteListener(), this);
         getServer().getPluginManager().registerEvents(new RespawnListener(), this);
+        getServer().getPluginManager().registerEvents(new HexLossListener(), this);
     }
 
     private void registerLibraries() {
@@ -107,11 +118,83 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         new SingleTeamPage();
     }
 
-    //! next make a way to save flag pole points so they can easily just be loaded using config
-    //!    - when doing this make sure the loaded points are valid (same x and z)
-    //! make it so you save flags using WorldEdit schematics and set the name for the schematics in the config
-    //!    - from this the schematics should be turned into falling blocks so the flags can be raised/lowered
+    //! make game states
+    //! stop players from breaking blocks in game world
+    //!    -  if the block was in a resource tile area then give them the resource they mined
+    //! only allow placing blocks on base tiles (any team can place on any base tile)
+    //!    -  make a build height so players cannot go above the walls
+    //!    -  only allow breaking player-placed blocks
+    //! send a title message to a team when their base gets captured
+    //! send a message to all players when any team's base tile is captured like the bed destruction message in bedwars
 
+    public void saveHexFlag(HexTile tile) {
+        HexFlag flag = tile.getHexFlag();
+        if (flag == null || flag.getBase() == null || flag.getTop() == null) {
+            return; // nothing to save
+        }
+
+        FileConfiguration config = MCOHexRoyale.getInstance().getConfig();
+        String path = "flags." + tile.getQ() + "_" + tile.getR();
+
+        saveLocation(config, path + ".base", flag.getBase());
+        saveLocation(config, path + ".top", flag.getTop());
+
+        saveConfig();
+    }
+
+    private void saveLocation(FileConfiguration config, String path, Location loc) {
+        config.set(path + ".world", loc.getWorld().getName());
+        config.set(path + ".x", loc.getX());
+        config.set(path + ".y", loc.getY());
+        config.set(path + ".z", loc.getZ());
+        config.set(path + ".yaw", loc.getYaw());
+        config.set(path + ".pitch", loc.getPitch());
+    }
+
+    public void loadHexFlags() {
+        FileConfiguration config = MCOHexRoyale.getInstance().getConfig();
+        if (!config.isConfigurationSection("flags")) return;
+
+        for (String key : config.getConfigurationSection("flags").getKeys(false)) {
+            try {
+                // key format: q_r
+                String[] parts = key.split("_");
+                int q = Integer.parseInt(parts[0]);
+                int r = Integer.parseInt(parts[1]);
+
+                Location base = loadLocation(config, "flags." + key + ".base");
+                Location top = loadLocation(config, "flags." + key + ".top");
+
+                if (base != null && top != null) {
+                    HexTile tile = HexManager.getInstance().getHexTile(q, r);
+                    if (tile != null) {
+                        tile.setFlagPole(base, top);
+                        boolean spawnAtTop = tile.getCurrentTeam() != null;
+                        if (tile.getHexFlag() != null) tile.getHexFlag().spawnFlag(spawnAtTop);
+                    }
+                }
+            } catch (Exception e) {
+                Bukkit.getLogger().warning("[MCOHexRoyale] Failed to load HexFlag for key: " + key);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private Location loadLocation(FileConfiguration config, String path) {
+        if (!config.isConfigurationSection(path)) return null;
+
+        String worldName = config.getString(path + ".world");
+        World world = Bukkit.getWorld(worldName);
+        if (world == null) return null;
+
+        double x = config.getDouble(path + ".x");
+        double y = config.getDouble(path + ".y");
+        double z = config.getDouble(path + ".z");
+        float yaw = (float) config.getDouble(path + ".yaw");
+        float pitch = (float) config.getDouble(path + ".pitch");
+
+        return new Location(world, x, y, z, yaw, pitch);
+    }
 
     //! for testing, make an auto team assigner and a way to manually set teams in the gui
     @EventHandler

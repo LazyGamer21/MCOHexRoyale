@@ -1,234 +1,171 @@
 package net.mcoasis.mcohexroyale.hexagonal;
 
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.world.block.BlockState;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
-import org.bukkit.entity.Entity;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import static java.lang.Math.abs;
+import java.util.Objects;
 
 public class HexFlag {
 
-    private final HexTile parentTile;
+    HexTile tile;
 
-    private final World world;
-    private Location corner1 = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
-    private Location corner2 = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
+    private List<FlagBlock> currentFlag = new ArrayList<>();
+    private List<BlockDisplay> activeFlagBlocks = new ArrayList<>();
 
-    private final List<BlockData> blockDataList = new ArrayList<>();
-    private final List<Vector> relativeOffsets = new ArrayList<>();
-    private final List<BlockDisplay> flagDisplays = new ArrayList<>();
+    private double flagHeight = Double.MIN_VALUE;
+
+    public HexFlag(HexTile tile) {
+        this.tile = tile;
+    }
+
+    public record FlagBlock(Vector offset, BlockData data) {}
 
     private Location base = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
     private Location top = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
 
-    private BukkitRunnable updateFlagRunnable;
+    private void loadFlagSchematic() {
+        String flagColorString;
 
-    public HexFlag(HexTile parentTile) {
-        //! set world to the game world
-        this.world = Bukkit.getWorld("world");
+        if (tile.getCurrentTeam() == null) {
+            flagColorString = "white-flag-schematic";
+        } else {
+            flagColorString = switch (tile.getCurrentTeam().getTeamColor()) {
+                case RED -> "red-flag-schematic";
+                case GREEN -> "green-flag-schematic";
+                case BLUE -> "blue-flag-schematic";
+                case YELLOW -> "yellow-flag-schematic";
+            };
+        }
 
-        this.parentTile = parentTile;
+        String filePath = MCOHexRoyale.getInstance().getConfig().getString(flagColorString, "whiteflag.schem");
 
-        updateFlagRunnable = new BukkitRunnable() {
-            @Override
-            public void run() {
-                updateFlag();
-            }
-        };
+        // FAWE schematic folder
+        File faweSchemFolder = new File(MCOHexRoyale.getInstance().getDataFolder().getParent(), "FastAsyncWorldEdit/schematics");
+        File file = new File(faweSchemFolder, filePath);
 
-        updateFlagRunnable.runTaskTimer(MCOHexRoyale.getInstance(), 0L, MCOHexRoyale.FLAG_CAPTURE_TIMER);
-    }
+        if (!file.exists()) {
+            Bukkit.getLogger().warning("[MCOHexRoyale] Could not find file: " + file.getAbsolutePath());
+            return;
+        }
 
-    private Location origin = null;
+        List<FlagBlock> blocks = new ArrayList<>();
 
-    // Grab all the blocks from the area and store their data
-    public void captureOriginalBlocks() {
-        int maxX = Math.max(corner1.getBlockX(), corner2.getBlockX());
-        int maxY = Math.max(corner1.getBlockY(), corner2.getBlockY());
-        int maxZ = Math.max(corner1.getBlockZ(), corner2.getBlockZ());
+        Clipboard clipboard;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            clipboard = Objects.requireNonNull(ClipboardFormats.findByFile(file)).getReader(fis).read();
+        } catch (Exception e) {
+            Bukkit.getLogger().warning("[MCOHexRoyale] Error loading schematic: " + file.getAbsolutePath());
+            return;
+        }
 
-        int minX = Math.min(corner1.getBlockX(), corner2.getBlockX());
-        int minY = Math.min(corner1.getBlockY(), corner2.getBlockY());
-        int minZ = Math.min(corner1.getBlockZ(), corner2.getBlockZ());
+        BlockVector3 min = clipboard.getRegion().getMinimumPoint();
+        BlockVector3 max = clipboard.getRegion().getMaximumPoint();
+        flagHeight = clipboard.getDimensions().getBlockY();
 
-        origin = new Location(world, minX, minY, minZ); // store the origin
+        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
+            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
+                for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
+                    BlockVector3 vec = BlockVector3.at(x, y, z);
+                    BlockState weBlock = clipboard.getBlock(vec);
 
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    Block block = world.getBlockAt(x, y, z);
-                    if (block.getType() == Material.AIR) continue;
-                    //? use command blocks for temp blocks for setting corners
-                    if (block.getType() == Material.COMMAND_BLOCK) continue;
+                    if (!weBlock.getBlockType().getMaterial().isAir()) {
+                        // Convert to Bukkit BlockData
+                        String id = weBlock.getBlockType().getId().replace("minecraft:", "");
+                        Material mat = Material.matchMaterial(id);
+                        if (mat == null || mat == Material.BEDROCK) continue;
 
-                    // Store original block data
-                    blockDataList.add(block.getBlockData());
-                    relativeOffsets.add(new Vector(x - minX, y - minY, z - minZ));
+                        BlockData data = Bukkit.createBlockData(mat);
+
+                        // Store relative position
+                        Vector offset = new Vector(
+                                x - min.getBlockX(),
+                                y - min.getBlockY(),
+                                z - min.getBlockZ()
+                        );
+
+                        blocks.add(new FlagBlock(offset, data));
+                    }
                 }
             }
         }
+
+        currentFlag = blocks;
     }
 
-    // Spawn block displays and remove original blocks when animation starts
-    public void spawnDisplays() {
-        if (!flagDisplays.isEmpty()) return;
+    public void spawnFlag(boolean flagAtTop) {
+        loadFlagSchematic();
 
-        Location base = origin.clone();
-
-        for (int i = 0; i < blockDataList.size(); i++) {
-            final int index = i; // final copy for lambda
-            Vector offset = relativeOffsets.get(index);
-            Block block = world.getBlockAt(
-                    origin.getBlockX() + offset.getBlockX(),
-                    origin.getBlockY() + offset.getBlockY(),
-                    origin.getBlockZ() + offset.getBlockZ()
-            );
-
-            // Only set block to air when we start moving
-            block.setType(Material.AIR);
-
-            // Spawn block display
-            BlockDisplay display = world.spawn(base.clone().add(offset), BlockDisplay.class, bd -> {
-                bd.setBlock(blockDataList.get(index));
-                bd.setGravity(false);
-            });
-
-            flagDisplays.add(display);
+        World flagWorld = base.getWorld();
+        if (flagWorld == null) {
+            Bukkit.getLogger().warning("[MCOHexRoyale] Could not respawn flag for tile: " + tile.getQ() + ", " + tile.getR());
+            return;
         }
+
+        List<BlockDisplay> displays = new ArrayList<>();
+        removeFlag(); // remove old flag blocks
+
+        if (currentFlag == null) {
+            Bukkit.getLogger().warning("Could not spawn flag for tile: " + tile.getQ() + ", " + tile.getR());
+            return;
+        }
+
+        for (FlagBlock fb : currentFlag) {
+            Location spawnToClone = flagAtTop ? top : base;
+            Location loc = spawnToClone.clone().add(fb.offset());
+
+            BlockDisplay display = (BlockDisplay) flagWorld.spawnEntity(loc, EntityType.BLOCK_DISPLAY);
+            display.setBlock(fb.data());
+
+            displays.add(display);
+        }
+
+        activeFlagBlocks = displays;
     }
 
-    // Put all original blocks back where they were
-    public void restoreOriginalBlocks() {
-        // Remove any active displays
-        for (Entity e : flagDisplays) {
-            e.remove();
-        }
-        flagDisplays.clear();
+    public void moveFlag(double capturePercentage) {
+        // flag has not been set if the height is MIN_VALUE
+        if (flagHeight == Double.MIN_VALUE) return;
 
-        // Place the blocks back in the world
-        for (int i = 0; i < blockDataList.size(); i++) {
-            Vector offset = relativeOffsets.get(i);
+        double flagPoleHeight = top.getY() - base.getY() + 1.0;
 
-            Block block = world.getBlockAt(
-                    corner1.getBlockX() + offset.getBlockX(),
-                    corner1.getBlockY() + offset.getBlockY(),
-                    corner1.getBlockZ() + offset.getBlockZ()
-            );
+        double newY = base.getY() + ((flagPoleHeight- flagHeight) * (capturePercentage * 0.01));
 
-            block.setBlockData(blockDataList.get(i), false);
-        }
-    }
+        Location flagTeleportPoint = base.clone();
+        flagTeleportPoint.setY(newY);
 
-    // Update flag position based on capturePercentage
-    public void updateFlag() {
-        if (flagDisplays.isEmpty())  return;
-        if (locationNotSet(base) || locationNotSet(top)) return;
-        if (corner1 == null || corner2 == null) return;
+        for (int i = 0; i < activeFlagBlocks.size(); i++) {
+            BlockDisplay display = activeFlagBlocks.get(i);
+            FlagBlock fb = currentFlag.get(i);
 
-        double capturePercentage = parentTile.getCapturePercentage();
-        double y = getY(capturePercentage);
-
-        if (y == Double.NEGATIVE_INFINITY) return; // something went wrong in getY()
-
-        // If at the bottom or top, convert to real blocks
-        if (capturePercentage == 0.0 || capturePercentage == 100.0) {
-            // solidify when fully captured
-            //! for some reason blocks don't move when this is on
-            //solidifyAt(y);
-        } else {
-            // make sure displays are spawned if mid-capture
-            spawnDisplays();
+            Location loc = flagTeleportPoint.clone().add(fb.offset());
+            display.teleport(loc);
         }
     }
 
-    boolean locationNotSet(Location location) {
-        boolean x = location.getBlockX() == 0;
-        boolean y = location.getBlockY() == 0;
-        boolean z = location.getBlockZ() == 0;
-
-        return x && y && z;
-    }
-
-    private double getY(double capturePercentage) {
-        double progress = capturePercentage / 100.0;
-        double heightOfFlag = abs(corner1.getY() - corner2.getY());
-
-        double baseY = base.getBlockY();
-        double topY = top.getBlockY();
-
-        double heightOfPole = baseY + (topY - baseY);
-        if (heightOfFlag > heightOfPole) {
-            Bukkit.getLogger().warning("[MCOHexRoyale] (Tile " + this.parentTile.getQ() + ", " + this.parentTile.getR() + ") Flag is taller than Pole!");
-            return Double.NEGATIVE_INFINITY;
+    public void removeFlag() {
+        for (BlockDisplay display : activeFlagBlocks) {
+            display.remove();
         }
-        double y = baseY + (topY - baseY - heightOfFlag) * progress;
-
-        for (int i = 0; i < flagDisplays.size(); i++) {
-            BlockDisplay display = flagDisplays.get(i);
-            Vector offset = relativeOffsets.get(i);
-
-            Location newLoc = new Location(world,
-                    corner1.getBlockX() + offset.getX(),
-                    y + offset.getY(),
-                    corner1.getBlockZ() + offset.getZ());
-
-            display.teleport(newLoc);
-        }
-
-        return y;
-    }
-
-    // Turn displays into actual blocks
-    private void solidifyAt(double y) {
-        // Remove displays
-        for (Entity e : flagDisplays) {
-            e.remove();
-        }
-        flagDisplays.clear();
-
-        // Place blocks
-        for (int i = 0; i < blockDataList.size(); i++) {
-            BlockData data = blockDataList.get(i);
-            Vector offset = relativeOffsets.get(i);
-
-            Block block = world.getBlockAt(
-                    corner1.getBlockX() + offset.getBlockX(),
-                    (int) (y + offset.getY()),
-                    corner1.getBlockZ() + offset.getBlockZ()
-            );
-
-            block.setBlockData(data, false);
-        }
+        activeFlagBlocks.clear();
     }
 
     // -- == Getters + Setters == --
-
-    public Location getCorner2() {
-        return corner2;
-    }
-
-    public void setCorner2(Location corner2) {
-        this.corner2 = corner2;
-    }
-
-    public Location getCorner1() {
-        return corner1;
-    }
-
-    public void setCorner1(Location corner1) {
-        this.corner1 = corner1;
-    }
 
     public void setBase(Location base) {
         this.base = base;
@@ -244,6 +181,10 @@ public class HexFlag {
 
     public Location getTop() {
         return top;
+    }
+
+    public double getFlagHeight() {
+        return flagHeight;
     }
 
 }

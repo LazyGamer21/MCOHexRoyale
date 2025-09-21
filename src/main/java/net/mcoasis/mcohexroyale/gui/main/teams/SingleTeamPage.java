@@ -45,16 +45,17 @@ public class SingleTeamPage extends AbstractGuiPage {
     }
 
     @Override
-    protected List<GuiItem> getListedButtons() {
+    protected List<GuiItem> getListedButtons(UUID playerId) {
         List<GuiItem> listedButtons = new ArrayList<>();
 
         for (Player p : Bukkit.getOnlinePlayers()) {
 
-            if (!HexManager.getInstance().getPlayerTeam(p).getTeamColor().equals(teamToOpen.get(p.getUniqueId()))) continue;
+            HexTeam targetTeam = HexManager.getInstance().getPlayerTeam(p);
+            if (targetTeam == null) continue;
+            if (!targetTeam.getTeamColor().equals(teamToOpen.get(playerId))) continue;
 
-            listedButtons.add(new GuiItem(Material.PLAYER_HEAD, e -> {
-                e.getWhoClicked().teleport(p.getLocation());
-            }).setName(p.getName()).setSkullOwner(p));
+            listedButtons.add(new GuiItem(Material.PLAYER_HEAD, e ->
+                    e.getWhoClicked().teleport(p.getLocation())).setName(p.getName()).setSkullOwner(p));
 
         }
 

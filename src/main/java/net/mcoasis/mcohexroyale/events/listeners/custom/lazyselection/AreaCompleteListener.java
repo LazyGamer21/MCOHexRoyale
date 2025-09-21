@@ -1,9 +1,14 @@
 package net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection;
 
 import me.ericdavis.lazySelection.events.LazyAreaCompleteEvent;
+import net.mcoasis.mcohexroyale.MCOHexRoyale;
+import net.mcoasis.mcohexroyale.hexagonal.HexFlag;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,14 +26,18 @@ public class AreaCompleteListener implements Listener {
 
         if (!playerSettingFlag.containsKey(playerId)) return;
 
-        HexTile flag = playerSettingFlag.get(playerId);
+        HexTile tile = playerSettingFlag.get(playerId);
         playerSettingFlag.remove(playerId);
 
         boolean sameX = e.getPoint1().getBlockX() == e.getPoint2().getBlockX();
         boolean sameZ = e.getPoint1().getBlockZ() == e.getPoint2().getBlockZ();
 
         if (sameX && sameZ) {
-            flag.setFlagPole(e.getPoint1(), e.getPoint2());
+            tile.setFlagPole(e.getPoint1(), e.getPoint2());
+            boolean spawnAtTop = tile.getCurrentTeam() != null;
+            if (tile.getHexFlag() == null) return;
+            tile.getHexFlag().spawnFlag(spawnAtTop);
+            MCOHexRoyale.getInstance().saveHexFlag(tile);
             return;
         }
 

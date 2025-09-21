@@ -13,8 +13,6 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 
 public class RespawnListener implements Listener {
 
-    private final int respawnTimer = 5;
-
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent e) {
         Player p = e.getPlayer();
@@ -23,6 +21,9 @@ public class RespawnListener implements Listener {
         if (team == null) return;
         if (team.hasBaseCaptured()) {
             p.setGameMode(GameMode.SPECTATOR);
+
+            int respawnTimer = 5;
+
             p.sendMessage(ChatColor.GRAY + "Respawning in " + respawnTimer + " seconds!");
             Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> {
                 team.getBaseTile().teleportToBase(p);

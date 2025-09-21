@@ -34,6 +34,7 @@ public class ResetTilesPage extends AbstractGuiPage {
     protected void assignItems(UUID playerId) {
         assignItem(playerId, 13, new GuiItem(Material.BEDROCK, e -> {
             HexManager.getInstance().resetAllTiles();
+            e.getWhoClicked().closeInventory();
         }).setName(ChatColor.DARK_RED + "RESET ALL TILES")
                 .setLore("Are you SURE you wish to reset all tiles?", "Doing so will set all tiles back to their default state"));
     }
@@ -44,7 +45,7 @@ public class ResetTilesPage extends AbstractGuiPage {
     }
 
     @Override
-    protected List<GuiItem> getListedButtons() {
+    protected List<GuiItem> getListedButtons(UUID playerId) {
         return List.of();
     }
 }
