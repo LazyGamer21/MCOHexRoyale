@@ -2,13 +2,9 @@ package net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection;
 
 import me.ericdavis.lazySelection.events.LazyAreaCompleteEvent;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
-import net.mcoasis.mcohexroyale.hexagonal.HexFlag;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

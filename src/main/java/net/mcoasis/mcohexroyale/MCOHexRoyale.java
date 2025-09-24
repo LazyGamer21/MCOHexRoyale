@@ -1,5 +1,6 @@
 package net.mcoasis.mcohexroyale;
 
+import me.ericdavis.lazyScoreboard.LazyScoreboard;
 import me.ericdavis.lazySelection.LazySelection;
 import me.ericdavis.lazygui.LazyGui;
 import me.ericdavis.lazygui.test.GuiManager;
@@ -17,7 +18,6 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import net.mcoasis.mcohexroyale.gui.main.TilesPage;
 import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexCaptureListener;
-import org.antlr.v4.runtime.misc.Pair;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -30,7 +30,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public final class MCOHexRoyale extends JavaPlugin implements Listener {
@@ -41,7 +40,8 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         return instance;
     }
 
-    BukkitTask gameUpdater;
+    private BukkitTask gameUpdater;
+    private LazyScoreboard scoreboard;
 
     @Override
     public void onEnable() {
@@ -51,6 +51,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
         // populate the grid before other stuff so it can be used
         HexManager.getInstance().populateGrid();
+        scoreboard = new LazyScoreboard(ChatColor.GOLD + "" + ChatColor.BOLD + "Hex Royale");
 
         loadHexFlags();
 
@@ -58,6 +59,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         registerGuiPages();
         registerCommandsAndListeners();
         restartRunnable();
+        updateScoreboard();
     }
 
     @Override
@@ -75,18 +77,23 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         gameUpdater = new BukkitRunnable() {
             @Override
             public void run() {
-                for (HexTile tile : HexManager.getInstance().getHexGrid()) {
-                    if (tile.getFlagLocation() == null) continue;
-                    tile.doCaptureCheck();
-                    String colorToSpawn = tile.isCurrentTeamOwns() ? tile.getCurrentTeam().getTeamColor().getName() : "";
-                    spawnParticles(tile.getFlagLocation(), getConfig().getDouble("capture-distance"), colorToSpawn);
-                    tile.updateFlagPosition();
-                }
+                updateTiles();
+                updateScoreboard();
                 GuiManager.getInstance().refreshPages();
             }
         }.runTaskTimer(this, 0, getConfig().getInt("capture-update-timer", 20));
 
         this.reloadConfig();
+    }
+
+    void updateTiles() {
+        for (HexTile tile : HexManager.getInstance().getHexGrid()) {
+            if (tile.getFlagLocation() == null) continue;
+            tile.doCaptureCheck();
+            String colorToSpawn = tile.isCurrentTeamOwns() ? tile.getCurrentTeam().getTeamColor().getName() : "";
+            spawnParticles(tile.getFlagLocation(), getConfig().getDouble("capture-distance"), colorToSpawn);
+            tile.updateFlagPosition();
+        }
     }
 
     private void registerCommandsAndListeners() {
@@ -116,6 +123,20 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         new ResetTilesPage();
 
         new SingleTeamPage();
+    }
+
+    private void updateScoreboard() {
+        if (scoreboard == null) return;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            scoreboard.setupScoreboard(player);
+            for (HexTeam team : HexManager.getInstance().getTeams()) {
+                int alive = (int) team.getMembersAlive().entrySet().stream().filter(Map.Entry::getValue).count();
+                int total = team.getMembersAlive().size();
+                String line = team.getTeamColor().getColor() + team.getTeamColor().getName() + ": " + alive + "/" + total;
+                scoreboard.setStat(player, team.getTeamColor().getName(), line);
+            }
+            scoreboard.updateStats(player);
+        }
     }
 
     //! make game states

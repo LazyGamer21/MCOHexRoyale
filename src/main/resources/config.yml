@@ -8,3 +8,6 @@ capture-distance: 10.0
 capture-multiplier: 1.0
 # timer is in ticks (there are 20 ticks per second)
 capture-update-timer: 20
+
+game-world: "world"
+lobby-world: "world"

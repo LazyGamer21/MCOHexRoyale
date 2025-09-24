@@ -6,6 +6,8 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTeam.TeamColor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
+
 public class HexManager {
 
     // -- == Singleton Stuff == --
@@ -45,7 +47,7 @@ public class HexManager {
      * @param player The player retrieving the team for
      * @return The first {@link HexTeam} found that has this player in its members
      */
-    public HexTeam getPlayerTeam(Player player) {
+    public @Nullable HexTeam getPlayerTeam(Player player) {
         for (HexTeam team : teams) {
             if (team.getMembersAlive().containsKey(player)) {
                 return team;
