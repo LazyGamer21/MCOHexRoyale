@@ -29,10 +29,18 @@ public class AreaCompleteListener implements Listener {
         boolean sameZ = e.getPoint1().getBlockZ() == e.getPoint2().getBlockZ();
 
         if (sameX && sameZ) {
-            tile.setFlagPole(e.getPoint1(), e.getPoint2());
+            int blockY1 = e.getPoint1().getBlockY();
+            int blockY2 = e.getPoint2().getBlockY();
+
+            // ensure block1 is the lower point
+            if (blockY1 < blockY2) tile.setFlagPole(e.getPoint1(), e.getPoint2());
+            else tile.setFlagPole(e.getPoint2(), e.getPoint1());
+
+            // checking if the flag is a base tile, if not then spawn the flag at the bottom
             boolean spawnAtTop = tile.getCurrentTeam() != null;
             if (tile.getHexFlag() == null) return;
             tile.getHexFlag().spawnFlag(spawnAtTop);
+
             MCOHexRoyale.getInstance().saveHexFlag(tile);
             return;
         }

@@ -38,7 +38,6 @@ public class HexManager {
         for (HexTeam team : teams) {
             if (team.getTeamColor().equals(color)) return team;
         }
-        Bukkit.broadcastMessage(color.getColor() + "created a new team because couldn't find bruh");
         return new HexTeam(color);
     }
 
@@ -54,6 +53,16 @@ public class HexManager {
             }
         }
         return null;
+    }
+
+    public int getOwnedTiles(HexTeam team) {
+        int count = 0;
+        for (HexTile tile : hexGrid) {
+            if (tile.getCurrentTeam() != null && tile.getCurrentTeam().equals(team) && tile.isCurrentTeamOwns()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     // -- == HexTeam Stuff == --

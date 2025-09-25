@@ -11,3 +11,9 @@ capture-update-timer: 20
 
 game-world: "world"
 lobby-world: "world"
+
+# game timer is in minutes
+game-timer: 30
+
+# middle tile is in minutes
+middle-tile-timer: 20

@@ -4,6 +4,7 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import net.mcoasis.mcohexroyale.events.HexLossEvent;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam.TeamColor;
+import net.mcoasis.mcohexroyale.managers.GameManager;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -57,6 +58,9 @@ public class HexTile {
     public void doCaptureCheck() {
         // return if this tile does not have a flag
         if (hexFlag.getBase() == null) return;
+
+        // only allow capturing of the middle tile after the middle tile time is up
+        if (q == 0 && r == 0 && GameManager.getInstance().getMiddleTileSeconds() > 0) return;
 
         capturingPlayersAmount = 0;
 
@@ -113,55 +117,45 @@ public class HexTile {
             // "max" is the number of players in the capturingTeam
             capturingPlayersAmount = max - secondMax;
 
-            // to make testing faster
+            // multiplier option
             double captureMultiplier = MCOHexRoyale.getInstance().getConfig().getDouble("capture-multiplier", 1.0);
             double captureUpdateTimer = MCOHexRoyale.getInstance().getConfig().getInt("capture-update-timer");
             double percentageChange = calculateChange(capturingPlayersAmount) * captureMultiplier;
-            percentageChange *= (captureUpdateTimer/20); // normalize capture change to account for different timer
+            percentageChange *= (captureUpdateTimer/20); // normalize capture change to account for different timer (20 is the default timer)
 
             // Handle percentage updates
-            if (capturingTeam != null) {
-                if (currentTeam == null || currentTeam.equals(capturingTeam)) {
-                    boolean currentTeamWasNull = currentTeam == null;
+            if (capturingTeam == null) return;
 
-                    // return if it's already maxed
-                    if (capturePercentage >= 100.0) return;
+            // if no current team or the current team is the capturing team
+            if (currentTeam == null || currentTeam.equals(capturingTeam)) {
+                boolean currentTeamWasNull = currentTeam == null;
 
-                    // increase percentage
-                    capturePercentage += percentageChange;
+                // return if it's already maxed
+                if (capturePercentage >= 100.0) return;
 
-                    currentTeam = capturingTeam;
+                // increase percentage
+                capturePercentage += percentageChange;
 
-                    if (currentTeamWasNull) hexFlag.spawnFlag(false);
+                currentTeam = capturingTeam;
 
-                    if (capturePercentage >= 100) {
-                        capturePercentage = 100;
-                        flagOwnershipGained();
-                    }
+                if (currentTeamWasNull) hexFlag.spawnFlag(false);
 
-                    //! debug
-                    /*String color = "" + (getCurrentTeam() == null ? ChatColor.GRAY : getCurrentTeam().getTeamColor().getColor());
-                    Bukkit.broadcastMessage(
-                            color + ChatColor.BOLD + "(" + r + ", " + q + ") " + ChatColor.RESET + color + "Capture Percentage: " +
-                                    ChatColor.YELLOW + ChatColor.BOLD + String.format("%.1f", getCapturePercentage())
-                    );*/
-
-                } else {
-                    capturePercentage -= percentageChange;
-
-                    if (capturePercentage <= 0) {
-                        flagOwnershipGone();
-                        capturePercentage = 0;
-                        currentTeam = capturingTeam;
-                    }
-
-                    //! debug
-                    /*String color = "" + (getCurrentTeam() == null ? ChatColor.GRAY : getCurrentTeam().getTeamColor().getColor());
-                    Bukkit.broadcastMessage(
-                            color + ChatColor.BOLD + "(" + r + ", " + q + ") " + ChatColor.RESET + color + "Capture Percentage: " +
-                                    ChatColor.YELLOW + ChatColor.BOLD + String.format("%.1f", getCapturePercentage())
-                    );*/
+                if (capturePercentage >= 100) {
+                    capturePercentage = 100;
+                    flagOwnershipGained();
                 }
+
+                // if the current team is not the capturing team
+            } else {
+
+                capturePercentage -= percentageChange;
+
+                if (capturePercentage <= 0) {
+                    flagOwnershipGone();
+                    capturePercentage = 0;
+                    currentTeam = null;
+                }
+
             }
         }
     }
@@ -191,6 +185,7 @@ public class HexTile {
         for (HexTeam team : HexManager.getInstance().getTeams()) {
             for (Player member : team.getMembersAlive().keySet()) {
                 if (team.getMembersAlive().get(member) == false) continue;
+                if (member.isDead()) continue;
                 if (member.getLocation().getWorld() == null || !member.getLocation().getWorld().equals(hexFlag.getBase().getWorld())) continue;
                 //! instead of getting from config every time make a variable and reload the variable whenever the config changes
                 if (member.getLocation().distance(hexFlag.getBase()) > MCOHexRoyale.getInstance().getConfig().getDouble("capture-distance")) {

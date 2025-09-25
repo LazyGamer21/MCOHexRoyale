@@ -5,7 +5,7 @@ import me.ericdavis.lazygui.test.AbstractGuiPage;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.MainPage;
-import org.bukkit.Bukkit;
+import net.mcoasis.mcohexroyale.managers.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -34,7 +34,7 @@ public class GameControlsPage extends AbstractGuiPage {
     @Override
     protected void assignItems(UUID playerId) {
         assignItem(playerId, 33, new GuiItem(Material.STONE, e -> {
-            MCOHexRoyale.getInstance().restartRunnable();
+            MCOHexRoyale.getInstance().restartLogicRunnable();
             e.getWhoClicked().closeInventory();
             e.getWhoClicked().sendMessage(ChatColor.YELLOW + "Restarted Flag BukkitTask!");
         }).setName(ChatColor.YELLOW + "Restart Flag Task")
@@ -49,10 +49,12 @@ public class GameControlsPage extends AbstractGuiPage {
 
         assignItem(playerId, 20, new GuiItem(Material.GREEN_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GREEN + "Starting the Game...");
+            GameManager.getInstance().startGame();
         }).setName(ChatColor.GREEN + "Start"));
 
         assignItem(playerId, 24, new GuiItem(Material.RED_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GREEN + "Stopping the Game...");
+            GameManager.getInstance().endGame();
         }).setName(ChatColor.RED + "Stop"));
 
         assignItem(playerId, 40, new GuiItem(Material.BEDROCK, e -> {
