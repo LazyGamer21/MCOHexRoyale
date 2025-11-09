@@ -5,10 +5,7 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BlockState;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.EntityType;
@@ -37,6 +34,7 @@ public class HexFlag {
     public record FlagBlock(Vector offset, BlockData data) {}
 
     private Location base = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
+    private Location bottom = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
     private Location top = new Location(Bukkit.getWorlds().getFirst(), 0, 0, 0);
 
     private void loadFlagSchematic() {
@@ -111,7 +109,7 @@ public class HexFlag {
     public void spawnFlag(boolean flagAtTop) {
         loadFlagSchematic();
 
-        World flagWorld = base.getWorld();
+        World flagWorld = bottom.getWorld();
         if (flagWorld == null) {
             Bukkit.getLogger().warning("[MCOHexRoyale] Could not respawn flag for tile: " + tile.getQ() + ", " + tile.getR());
             return;
@@ -125,8 +123,10 @@ public class HexFlag {
             return;
         }
 
+        Location spawnToClone = flagAtTop ? top.clone() : bottom.clone();
+        if (flagAtTop) spawnToClone.add(0, -flagHeight + 1, 0);
+
         for (FlagBlock fb : currentFlag) {
-            Location spawnToClone = flagAtTop ? top : base;
             Location loc = spawnToClone.clone().add(fb.offset());
 
             BlockDisplay display = (BlockDisplay) flagWorld.spawnEntity(loc, EntityType.BLOCK_DISPLAY);
@@ -142,11 +142,11 @@ public class HexFlag {
         // flag has not been set if the height is MIN_VALUE
         if (flagHeight == Double.MIN_VALUE) return;
 
-        double flagPoleHeight = top.getY() - base.getY() + 1.0;
+        double flagPoleHeight = top.getY() - bottom.getY() + 1.0;
 
-        double newY = base.getY() + ((flagPoleHeight- flagHeight) * (capturePercentage * 0.01));
+        double newY = bottom.getY() + ((flagPoleHeight- flagHeight) * (capturePercentage * 0.01));
 
-        Location flagTeleportPoint = base.clone();
+        Location flagTeleportPoint = bottom.clone();
         flagTeleportPoint.setY(newY);
 
         for (int i = 0; i < activeFlagBlocks.size(); i++) {
@@ -171,6 +171,8 @@ public class HexFlag {
         this.base = base;
     }
 
+    public void setBottom(Location bottom) { this.bottom = bottom; }
+
     public void setTop(Location top) {
         this.top = top;
     }
@@ -182,6 +184,8 @@ public class HexFlag {
     public Location getTop() {
         return top;
     }
+
+    public Location getBottom() { return bottom; }
 
     public double getFlagHeight() {
         return flagHeight;

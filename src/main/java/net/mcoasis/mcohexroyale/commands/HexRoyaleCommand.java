@@ -1,4 +1,4 @@
-package net.mcoasis.mcohexroyale;
+package net.mcoasis.mcohexroyale.commands;
 
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.gui.MainPage;

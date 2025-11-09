@@ -28,11 +28,10 @@ public class HexCaptureListener implements Listener {
                 team.getBaseTile().teleportToBase(member);
                 team.getMembersAlive().put(member, true);
             }
-        }
+        } else Bukkit.broadcastMessage(color + ChatColor.BOLD + team.getTeamColor().getName() + " Team" + ChatColor.RESET + ChatColor.GRAY
+                + " has captured the point (" + color + e.getTile().getQ() + ", " + e.getTile().getR() + ChatColor.GRAY + ")!");
 
-        tile.getHexFlag().spawnFlag(false);
-
-        Bukkit.broadcastMessage(color + ChatColor.BOLD + team.getTeamColor().getName() + " Team" + ChatColor.RESET + ChatColor.GRAY + " has captured the point (" + color + e.getTile().getQ() + ", " + e.getTile().getR() + ChatColor.GRAY + ")!");
+        if (tile.getHexFlag() != null) tile.getHexFlag().spawnFlag(false);
     }
 
 }

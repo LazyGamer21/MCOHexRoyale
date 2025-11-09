@@ -1,6 +1,7 @@
 package net.mcoasis.mcohexroyale.managers;
 
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
+import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -31,7 +32,9 @@ public class GameManager {
         gameTimerSeconds = 60 * MCOHexRoyale.getInstance().getConfig().getDouble("game-timer", 30); // default is 45 minutes
         middleTileSeconds = 60 * MCOHexRoyale.getInstance().getConfig().getDouble("middle-tile-timer", 20); // default is 30 minutes
 
-        MCOHexRoyale.getInstance().restartLogicRunnable();
+        MCOHexRoyale.getInstance().restartGame();
+
+        MCOHexRoyale.getInstance().restartRunnables();
 
         restartTimerRunnable();
 
@@ -39,6 +42,7 @@ public class GameManager {
         //! teleport players to their team spawns
         //! give starting items
         //! announce game start
+
         Bukkit.broadcastMessage("starting game...");
 
         setGameState(GameState.INGAME);
@@ -49,7 +53,8 @@ public class GameManager {
         setGameState(GameState.ENDING);
         // Additional logic to end the game
         WorldManager.getInstance().resetGameWorld();
-        MCOHexRoyale.getInstance().stopLogicRunnable();
+        MCOHexRoyale.getInstance().stopRunnables();
+        MCOHexRoyale.getInstance().stopGame();
         setGameState(GameState.LOBBY);
     }
 

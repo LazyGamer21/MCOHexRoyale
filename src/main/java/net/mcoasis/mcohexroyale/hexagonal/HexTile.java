@@ -29,11 +29,15 @@ public class HexTile {
 
     private HexFlag hexFlag;
 
+    private HexTeam baseTeam;
+    private HexTeam capturingTeam = null;
+
     public HexTile(int q, int r, HexTeam team) {
         this.hexManager = HexManager.getInstance();
         this.q = q;
         this.r = r;
         this.currentTeam = team;
+        this.baseTeam = team;
         if (team != null) {
             this.capturePercentage = 100.0;
             this.currentTeamOwns = true;
@@ -47,10 +51,26 @@ public class HexTile {
         hexManager.getHexGrid().add(tile);
     }
 
-    public void setFlagPole(Location corner1, Location corner2) {
+    public void setFlagBase(Location loc) {
         if (hexFlag == null) hexFlag = new HexFlag(this);
-        hexFlag.setBase(corner1);
-        hexFlag.setTop(corner2);
+        hexFlag.setBase(loc);
+    }
+
+    public void setFlagBottom(Location loc) {
+        if (hexFlag == null) hexFlag = new HexFlag(this);
+        hexFlag.setBottom(loc);
+    }
+
+    public void setFlagTop(Location loc) {
+        if (hexFlag == null) hexFlag = new HexFlag(this);
+        hexFlag.setTop(loc);
+    }
+
+    public void setFlagPositions(Location top, Location bottom, Location base) {
+        if (hexFlag == null) hexFlag = new HexFlag(this);
+        hexFlag.setTop(top);
+        hexFlag.setBottom(bottom);
+        hexFlag.setBase(base);
     }
 
     private final HashMap<Player, HexTeam> capturingPlayers = new HashMap<>();
@@ -66,8 +86,6 @@ public class HexTile {
 
         // get all the people in the flag area that can capture it
         setCapturers();
-
-        HexTeam capturingTeam = null;
 
         if (!capturingPlayers.isEmpty()) {
 
@@ -87,8 +105,6 @@ public class HexTile {
             int max = 0;
             int secondMax = 0; // 👈 will hold the "second team" player count
 
-
-
             // get the top 2 teams and subtract second top from top
             for (Map.Entry<TeamColor, Integer> entry : teamCounts.entrySet()) {
                 int count = entry.getValue();
@@ -101,6 +117,8 @@ public class HexTile {
                     secondMax = count;
                 }
             }
+
+            capturingTeam = null;
 
             if (topTeam != null) {
                 // Check if multiple teams are tied with max
@@ -141,8 +159,7 @@ public class HexTile {
                 if (currentTeamWasNull) hexFlag.spawnFlag(false);
 
                 if (capturePercentage >= 100) {
-                    capturePercentage = 100;
-                    flagOwnershipGained();
+                    if (!currentTeamOwns) flagOwnershipGained();
                 }
 
                 // if the current team is not the capturing team
@@ -158,6 +175,14 @@ public class HexTile {
 
             }
         }
+    }
+
+    public boolean isBaseAndBeingCaptured() {
+        if (baseTeam == null) return false;
+        if (capturingPlayers.isEmpty()) return false;
+
+        // check if the capturing team is not the base team
+        return !capturingTeam.equals(baseTeam);
     }
 
     public void updateFlagPosition() {

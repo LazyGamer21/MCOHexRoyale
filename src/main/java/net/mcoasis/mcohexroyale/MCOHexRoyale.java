@@ -4,11 +4,10 @@ import me.ericdavis.lazyScoreboard.LazyScoreboard;
 import me.ericdavis.lazySelection.LazySelection;
 import me.ericdavis.lazygui.LazyGui;
 import me.ericdavis.lazygui.test.GuiManager;
-import net.mcoasis.mcohexroyale.events.listeners.BlockBreakListener;
-import net.mcoasis.mcohexroyale.events.listeners.BlockPlaceListener;
-import net.mcoasis.mcohexroyale.events.listeners.RespawnListener;
+import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
+import net.mcoasis.mcohexroyale.events.listeners.*;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexLossListener;
-import net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection.AreaCompleteListener;
+import net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection.LazySelectionListener;
 import net.mcoasis.mcohexroyale.gui.MainPage;
 import net.mcoasis.mcohexroyale.gui.main.ResetTilesPage;
 import net.mcoasis.mcohexroyale.gui.main.TeamsPage;
@@ -22,11 +21,14 @@ import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexCaptureListener;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.managers.WorldManager;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -34,6 +36,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public final class MCOHexRoyale extends JavaPlugin implements Listener {
@@ -45,6 +48,8 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     }
 
     private BukkitTask gameLogicUpdater;
+    private BukkitTask warningMessageTask;
+
     private LazyScoreboard scoreboard;
 
     /* region OnEnable/OnDisable */
@@ -55,28 +60,44 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
         saveDefaultConfig();
 
+        registerLibraries();
+        registerGuiPages();
+        registerCommandsAndListeners();
+
+        restartGame();
+    }
+
+    @Override
+    public void onDisable() {
+        stopGame();
+    }
+
+    /* endregion */
+
+    public void restartGame() {
+        stopGame();
+
         // populate the grid before other stuff so it can be used
         HexManager.getInstance().populateGrid();
         scoreboard = new LazyScoreboard(ChatColor.GOLD + "" + ChatColor.BOLD + "-+- Hex Royale -+- ");
 
         loadHexFlags();
-
-        registerLibraries();
-        registerGuiPages();
-        registerCommandsAndListeners();
     }
 
-    @Override
-    public void onDisable() {
+    public void stopGame() {
         for (HexTile tile : HexManager.getInstance().getHexGrid()) {
             if (tile.getHexFlag() != null) tile.getHexFlag().removeFlag();
         }
+        if (scoreboard == null) return;
         for (Player p : Bukkit.getOnlinePlayers()) {
             scoreboard.removeScoreboard(p);
         }
     }
 
-    /* endregion */
+    public void restartRunnables() {
+        restartLogicRunnable();
+        restartWarningRunnable();
+    }
 
     public void restartLogicRunnable() {
         if (gameLogicUpdater != null && !gameLogicUpdater.isCancelled()) gameLogicUpdater.cancel();
@@ -95,8 +116,49 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         this.reloadConfig();
     }
 
-    public void stopLogicRunnable() {
+    public void restartWarningRunnable() {
+        if (warningMessageTask != null && !warningMessageTask.isCancelled()) warningMessageTask.cancel();
+
+        reloadConfig();
+
+        warningMessageTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                sendWarningMessages();
+            }
+        }.runTaskTimer(this, 0, getConfig().getInt("warning-message-timer", 30));
+
+        this.reloadConfig();
+    }
+
+    public void stopRunnables() {
         if (gameLogicUpdater != null && !gameLogicUpdater.isCancelled()) gameLogicUpdater.cancel();
+        if (warningMessageTask != null && !warningMessageTask.isCancelled()) warningMessageTask.cancel();
+    }
+
+    void sendWarningMessages() {
+        for (HexTeam team : HexManager.getInstance().getTeams()) {
+            if (!team.getBaseTile().isBaseAndBeingCaptured()) continue;
+            for (Player member : team.getMembersAlive().keySet()) {
+                // send action bar message and sound effect
+                member.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(ChatColor.RED + "Your base is being captured!"));
+                Location loc = member.getLocation();
+
+                new BukkitRunnable() {
+                    int tick = 0;
+                    @Override
+                    public void run() {
+                        if (tick > 4) {
+                            cancel();
+                            return;
+                        }
+                        float pitch = 1.0f - ((tick%2) * 0.2f);
+                        member.playSound(loc, Sound.BLOCK_NOTE_BLOCK_PLING, 0.5f, pitch);
+                        tick++;
+                    }
+                }.runTaskTimer(this, 0L, 2L);
+            }
+        }
     }
 
     void updateTiles() {
@@ -104,7 +166,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
             if (tile.getFlagLocation() == null) continue;
             tile.doCaptureCheck();
             String colorToSpawn = tile.isCurrentTeamOwns() ? tile.getCurrentTeam().getTeamColor().getName() : "";
-            spawnParticles(tile.getFlagLocation(), getConfig().getDouble("capture-distance"), colorToSpawn);
+            spawnParticles(tile.getHexFlag().getBase(), getConfig().getDouble("capture-distance"), colorToSpawn);
             tile.updateFlagPosition();
         }
     }
@@ -114,14 +176,16 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         HexRoyaleCommand hexRoyaleCommand = new HexRoyaleCommand();
         getCommand("mcohexroyale").setExecutor(hexRoyaleCommand);
 
-        // register events
+        // register listeners
         getServer().getPluginManager().registerEvents(new HexCaptureListener(), this);
         getServer().getPluginManager().registerEvents(this, this);
-        getServer().getPluginManager().registerEvents(new AreaCompleteListener(), this);
+        getServer().getPluginManager().registerEvents(new LazySelectionListener(), this);
         getServer().getPluginManager().registerEvents(new RespawnListener(), this);
         getServer().getPluginManager().registerEvents(new HexLossListener(), this);
         getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(), this);
+        getServer().getPluginManager().registerEvents(new EntityDamageEntityListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerChatListener(), this);
     }
 
     private void registerLibraries() {
@@ -201,20 +265,12 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         FileConfiguration config = MCOHexRoyale.getInstance().getConfig();
         String path = "flags." + tile.getQ() + "_" + tile.getR();
 
-        saveLocation(config, path + ".base", flag.getBase());
-        saveLocation(config, path + ".top", flag.getTop());
+        saveFlagData(config, path, flag.getTop(), flag.getBottom(), flag.getBase());
 
         saveConfig();
     }
 
-    private void saveLocation(FileConfiguration config, String path, Location loc) {
-        config.set(path + ".world", loc.getWorld().getName());
-        config.set(path + ".x", loc.getX());
-        config.set(path + ".y", loc.getY());
-        config.set(path + ".z", loc.getZ());
-        config.set(path + ".yaw", loc.getYaw());
-        config.set(path + ".pitch", loc.getPitch());
-    }
+
 
     public void loadHexFlags() {
         FileConfiguration config = MCOHexRoyale.getInstance().getConfig();
@@ -227,13 +283,21 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
                 int q = Integer.parseInt(parts[0]);
                 int r = Integer.parseInt(parts[1]);
 
-                Location base = loadLocation(config, "flags." + key + ".base");
-                Location top = loadLocation(config, "flags." + key + ".top");
+                Map<FlagLocPos, Location> locs = loadFlagData(config, "flags." + key);
+
+                if (locs == null) {
+                    Bukkit.getLogger().warning("[HexRoyale] Failed to load flag positions from config!");
+                    return;
+                }
+
+                Location top = locs.get(FlagLocPos.TOP);
+                Location bottom = locs.get(FlagLocPos.BOTTOM);
+                Location base = locs.get(FlagLocPos.BASE);
 
                 if (base != null && top != null) {
                     HexTile tile = HexManager.getInstance().getHexTile(q, r);
                     if (tile != null) {
-                        tile.setFlagPole(base, top);
+                        tile.setFlagPositions(top, bottom, base);
                         boolean spawnAtTop = tile.getCurrentTeam() != null;
                         if (tile.getHexFlag() != null) tile.getHexFlag().spawnFlag(spawnAtTop);
                     }
@@ -245,7 +309,16 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         }
     }
 
-    private Location loadLocation(FileConfiguration config, String path) {
+    private void saveFlagData(FileConfiguration config, String path, Location top, Location bottom, Location base) {
+        config.set(path + ".world", base.getWorld().getName());
+        config.set(path + ".x", base.getX());
+        config.set(path + ".z", base.getZ());
+        config.set(path + ".topY", top.getY());
+        config.set(path + ".bottomY", bottom.getY());
+        config.set(path + ".baseY", base.getY());
+    }
+
+    private Map<FlagLocPos, Location> loadFlagData(FileConfiguration config, String path) {
         if (!config.isConfigurationSection(path)) return null;
 
         String worldName = config.getString(path + ".world");
@@ -253,12 +326,21 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         if (world == null) return null;
 
         double x = config.getDouble(path + ".x");
-        double y = config.getDouble(path + ".y");
         double z = config.getDouble(path + ".z");
-        float yaw = (float) config.getDouble(path + ".yaw");
-        float pitch = (float) config.getDouble(path + ".pitch");
 
-        return new Location(world, x, y, z, yaw, pitch);
+        double baseY = config.getDouble(path + ".baseY");
+        double topY = config.getDouble(path + ".topY");
+        double bottomY = config.getDouble(path + ".bottomY");
+
+        Location base = new Location(world, x, baseY, z);
+        Location top = new Location(world, x, topY, z);
+        Location bottom = new Location(world, x, bottomY, z);
+
+        Map<FlagLocPos, Location> locs = new HashMap<>();
+        locs.put(FlagLocPos.BASE, base);
+        locs.put(FlagLocPos.TOP, top);
+        locs.put(FlagLocPos.BOTTOM, bottom);
+        return locs;
     }
 
     //! for testing, make an auto team assigner and a way to manually set teams in the gui

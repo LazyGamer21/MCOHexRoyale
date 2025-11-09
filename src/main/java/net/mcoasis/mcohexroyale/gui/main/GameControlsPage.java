@@ -34,12 +34,11 @@ public class GameControlsPage extends AbstractGuiPage {
     @Override
     protected void assignItems(UUID playerId) {
         assignItem(playerId, 33, new GuiItem(Material.STONE, e -> {
-            MCOHexRoyale.getInstance().restartLogicRunnable();
+            MCOHexRoyale.getInstance().restartRunnables();
             e.getWhoClicked().closeInventory();
             e.getWhoClicked().sendMessage(ChatColor.YELLOW + "Restarted Flag BukkitTask!");
-        }).setName(ChatColor.YELLOW + "Restart Flag Task")
-                .setLore(ChatColor.GRAY + "This task updates capture percentages and flags",
-                        ChatColor.GRAY + "Do this when changing the capture-update-timer in the config"));
+        }).setName(ChatColor.YELLOW + "Restart Tasks")
+                .setLore(ChatColor.GRAY + "Restarts BukkitTasks to use new Config values"));
 
         assignItem(playerId, 29, new GuiItem(Material.STONE, e -> {
             MCOHexRoyale.getInstance().reloadConfig();

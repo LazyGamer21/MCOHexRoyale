@@ -8,4 +8,11 @@ depend: [ WorldEdit ]
 commands:
   mcohexroyale:
     description: Main command for HexRoyale
-    usage: /<command> [subcommand]
+    usage: /mcohexroyale
+    permission: hexroyale.admin
+
+permissions:
+  hexroyale.admin:
+    default: false
+  hexroyale.nojoin:
+    default: false

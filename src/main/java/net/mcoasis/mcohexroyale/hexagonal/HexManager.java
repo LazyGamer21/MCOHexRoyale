@@ -163,6 +163,7 @@ public class HexManager {
     }
 
     public boolean canCapture(HexTeam team, HexTile startTile) {
+
         HexTile base = team.getBaseTile();
 
         if (base == null) {
@@ -205,6 +206,7 @@ public class HexManager {
         }
 
         return false; // No valid path to base
+
     }
 
     private boolean dfs(HexTile current, HexTile end, TeamColor targetColor) {

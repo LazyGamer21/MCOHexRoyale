@@ -10,9 +10,11 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -127,12 +129,11 @@ public class TilesPage extends AbstractGuiPage {
         assignItem(playerId, slot, new GuiItem(material, e -> {
             Player p = (Player) e.getWhoClicked();
             p.closeInventory();
-            //HexManager.getInstance().setPlayerSettingFlag((Player) e.getWhoClicked(), tile, true);
             HexManager.getInstance().getPlayerSettingFlag().put(playerId, tile);
-            LazySelection.setArea(p, tile.getOrCreateHexFlag().getBase(), tile.getOrCreateHexFlag().getTop());
+            //LazySelection.setArea(p, tile.getOrCreateHexFlag().getBase(), tile.getOrCreateHexFlag().getTop());
+            LazySelection.setPoints(p, new ArrayList<>());
         })
                 .setName(color + q + ", " + r)
-                //! tile.getCapturingPlayersAmount() does not update if nobody is in the circle so it stays 1, make it update for this
                 .setLore(loreColor + tile.getCapturingPlayersAmount() + " : " + String.format("%.2f", tile.getCapturePercentage())));
     }
 }
