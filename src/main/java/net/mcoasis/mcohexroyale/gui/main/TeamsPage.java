@@ -61,8 +61,7 @@ public class TeamsPage extends AbstractGuiPage {
                 .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.YELLOW).getMembersAlive().size()));
 
         assignItem(playerId, 31, new GuiItem(Material.STONE, e -> {
-            //!DEBUG
-            Bukkit.broadcastMessage("teams randomized");
+            e.getWhoClicked().sendMessage(ChatColor.GRAY + "[HexRoyale] teams randomized");
             // for every player in lobby who does not have "nojoin" permission
             List<Player> playersToTeam = new ArrayList<>();
             for (Player p : Bukkit.getOnlinePlayers()) {
@@ -85,7 +84,7 @@ public class TeamsPage extends AbstractGuiPage {
 
     private void assignPlayersToTeams(List<Player> players) {
         int numTeams = 4;
-        HexTeam.TeamColor[] teamNames = {TeamColor.RED, TeamColor.BLUE, TeamColor.GREEN, TeamColor.YELLOW};
+        HexTeam.TeamColor[] teamColors = {TeamColor.RED, TeamColor.BLUE, TeamColor.GREEN, TeamColor.YELLOW};
 
         // Shuffle to randomize player order
         Collections.shuffle(players);
@@ -94,27 +93,27 @@ public class TeamsPage extends AbstractGuiPage {
         for (int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
             int teamIndex = i % numTeams; // distributes evenly across 4 teams
-            TeamColor team = teamNames[teamIndex];
+            TeamColor team = teamColors[teamIndex];
             TeamColor teamColor;
 
             switch (team) {
                 case TeamColor.RED:
                     teamColor = TeamColor.RED;
-                    HexManager.getInstance().getTeam(teamColor).addMember(player);
-                    Bukkit.broadcastMessage(teamColor.getColor() + player.getDisplayName() + " assigned to " + teamColor.getName() + " team");
+                    break;
                 case TeamColor.BLUE:
                     teamColor = TeamColor.BLUE;
-                    HexManager.getInstance().getTeam(teamColor).addMember(player);
-                    Bukkit.broadcastMessage(teamColor.getColor() + player.getDisplayName() + " assigned to " + teamColor.getName() + " team");
+                    break;
                 case TeamColor.GREEN:
                     teamColor = TeamColor.GREEN;
-                    HexManager.getInstance().getTeam(teamColor).addMember(player);
-                    Bukkit.broadcastMessage(teamColor.getColor() + player.getDisplayName() + " assigned to " + teamColor.getName() + " team");
+                    break;
                 case TeamColor.YELLOW:
                     teamColor = TeamColor.YELLOW;
-                    HexManager.getInstance().getTeam(teamColor).addMember(player);
-                    Bukkit.broadcastMessage(teamColor.getColor() + player.getDisplayName() + " assigned to " + teamColor.getName() + " team");
+                    break;
+                default:
+                    continue;
             }
+
+            HexManager.getInstance().getTeam(teamColor).addMember(player);
         }
     }
 

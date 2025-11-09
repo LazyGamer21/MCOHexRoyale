@@ -5,6 +5,9 @@ import me.ericdavis.lazySelection.LazySelection;
 import me.ericdavis.lazygui.LazyGui;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
+import net.mcoasis.mcohexroyale.commands.SetTeamCommand;
+import net.mcoasis.mcohexroyale.commands.participant.TeamChatCommand;
+import net.mcoasis.mcohexroyale.commands.tabcompleters.SetTeamTabCompleter;
 import net.mcoasis.mcohexroyale.events.listeners.*;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexLossListener;
 import net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection.LazySelectionListener;
@@ -34,6 +37,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
@@ -59,6 +63,11 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         instance = this;
 
         saveDefaultConfig();
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new TeamPlaceholder().register();
+            getLogger().info("Registered PlaceholderAPI placeholders!");
+        }
 
         registerLibraries();
         registerGuiPages();
@@ -173,8 +182,13 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
     private void registerCommandsAndListeners() {
         // register commands
-        HexRoyaleCommand hexRoyaleCommand = new HexRoyaleCommand();
-        getCommand("mcohexroyale").setExecutor(hexRoyaleCommand);
+        getCommand("mcohexroyale").setExecutor(new HexRoyaleCommand());
+        getCommand("setteam").setExecutor(new SetTeamCommand());
+        TeamChatCommand teamChatCommand = new TeamChatCommand();
+        getCommand("teamchat").setExecutor(teamChatCommand);
+
+        // register tab completers
+        getCommand("setteam").setTabCompleter(new SetTeamTabCompleter());
 
         // register listeners
         getServer().getPluginManager().registerEvents(new HexCaptureListener(), this);
@@ -185,7 +199,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(), this);
         getServer().getPluginManager().registerEvents(new EntityDamageEntityListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerChatListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerChatListener(teamChatCommand), this);
     }
 
     private void registerLibraries() {
@@ -341,24 +355,6 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         locs.put(FlagLocPos.TOP, top);
         locs.put(FlagLocPos.BOTTOM, bottom);
         return locs;
-    }
-
-    //! for testing, make an auto team assigner and a way to manually set teams in the gui
-    @EventHandler
-    public void onPlayerSetTeam(PlayerInteractEvent e) {
-        Material material = e.getPlayer().getInventory().getItemInMainHand().getType();
-        if (material.equals(Material.RED_DYE)) {
-            HexManager.getInstance().getTeam(HexTeam.TeamColor.RED).addMember(e.getPlayer());
-            e.getPlayer().sendMessage(ChatColor.GRAY + "You are now on Red Team");
-        }
-        if (material.equals(Material.BLUE_DYE)) {
-            HexManager.getInstance().getTeam(HexTeam.TeamColor.BLUE).addMember(e.getPlayer());
-            e.getPlayer().sendMessage(ChatColor.GRAY + "You are now on Blue Team");
-        }
-        if (material.equals(Material.LIME_DYE)) {
-            HexManager.getInstance().getTeam(HexTeam.TeamColor.GREEN).addMember(e.getPlayer());
-            e.getPlayer().sendMessage(ChatColor.GRAY + "You are now on Green Team");
-        }
     }
 
     public void spawnParticles(Location loc, double distance, String color) {

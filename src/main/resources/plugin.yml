@@ -4,12 +4,21 @@ main: net.mcoasis.mcohexroyale.MCOHexRoyale
 api-version: '1.21'
 authors: [ LazyGamer21 ]
 depend: [ WorldEdit ]
+softdepend: [ PlaceholderAPI ]
 
 commands:
   mcohexroyale:
     description: Main command for HexRoyale
     usage: /mcohexroyale
     permission: hexroyale.admin
+  setteam:
+    description: set a player's team
+    usage: /setteam <player> <team>
+    permission: hexroyale.admin
+  teamchat:
+    description: chat only player's on same hex team can see
+    usage: /teamchat
+    aliases: tc
 
 permissions:
   hexroyale.admin:

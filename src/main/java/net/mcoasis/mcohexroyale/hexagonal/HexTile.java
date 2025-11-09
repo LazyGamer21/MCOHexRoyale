@@ -212,7 +212,6 @@ public class HexTile {
                 if (team.getMembersAlive().get(member) == false) continue;
                 if (member.isDead()) continue;
                 if (member.getLocation().getWorld() == null || !member.getLocation().getWorld().equals(hexFlag.getBase().getWorld())) continue;
-                //! instead of getting from config every time make a variable and reload the variable whenever the config changes
                 if (member.getLocation().distance(hexFlag.getBase()) > MCOHexRoyale.getInstance().getConfig().getDouble("capture-distance")) {
                     continue;
                 }
