@@ -18,15 +18,13 @@ public class HexLossListener implements Listener {
         HexFlag flag = tile.getHexFlag();
         HexTeam team = e.getTeam();
 
-        Bukkit.broadcastMessage(team.getTeamColor().getColor() + "team lost tile");
-
         if (flag != null) flag.spawnFlag(false);
 
         for (HexTile teamTile : HexManager.getInstance().getHexGrid()) {
             if (teamTile.equals(tile)) continue;
             // if the tile is owned by "team", check if it still has a path to the base tile
             HexTeam currentTeam = teamTile.getCurrentTeam();
-            if (currentTeam == null || !teamTile.isCurrentTeamOwns()) continue;
+            if (currentTeam == null) continue;
             if (!teamTile.getCurrentTeam().equals(team)) continue;
 
             if (HexManager.getInstance().areConnected(teamTile, team.getBaseTile())) continue;
@@ -36,6 +34,12 @@ public class HexLossListener implements Listener {
             teamTile.setCapturePercentage(0.0);
             if (teamTile.getHexFlag() != null) teamTile.getHexFlag().spawnFlag(false);
         }
+
+        if (tile.equals(team.getBaseTile())) {
+            Bukkit.broadcastMessage(ChatColor.BOLD + team.getTeamColor().getColor() + team.getTeamColor().getName() + " Team" + ChatColor.RESET + ChatColor.DARK_AQUA + " has lost their base tile!");
+            team.checkTeamLoss();
+        }
+
     }
 
 }

@@ -10,6 +10,8 @@ import net.mcoasis.mcohexroyale.commands.participant.TeamChatCommand;
 import net.mcoasis.mcohexroyale.commands.tabcompleters.SetTeamTabCompleter;
 import net.mcoasis.mcohexroyale.events.listeners.*;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexLossListener;
+import net.mcoasis.mcohexroyale.events.listeners.custom.TeamLossListener;
+import net.mcoasis.mcohexroyale.events.listeners.custom.TeamWonListener;
 import net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection.LazySelectionListener;
 import net.mcoasis.mcohexroyale.gui.MainPage;
 import net.mcoasis.mcohexroyale.gui.main.ResetTilesPage;
@@ -191,15 +193,20 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         getCommand("setteam").setTabCompleter(new SetTeamTabCompleter());
 
         // register listeners
-        getServer().getPluginManager().registerEvents(new HexCaptureListener(), this);
-        getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new LazySelectionListener(), this);
-        getServer().getPluginManager().registerEvents(new RespawnListener(), this);
+        getServer().getPluginManager().registerEvents(new HexCaptureListener(), this);
         getServer().getPluginManager().registerEvents(new HexLossListener(), this);
+        getServer().getPluginManager().registerEvents(new TeamLossListener(), this);
+        getServer().getPluginManager().registerEvents(new TeamWonListener(), this);
         getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(), this);
         getServer().getPluginManager().registerEvents(new EntityDamageEntityListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerChatListener(teamChatCommand), this);
+        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new RespawnListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerDeathListener(), this);
+
+
     }
 
     private void registerLibraries() {

@@ -7,12 +7,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -24,21 +22,25 @@ public class RespawnListener implements Listener {
         HexTeam team = HexManager.getInstance().getPlayerTeam(p);
 
         if (team == null) return;
-        if (team.hasBaseCaptured()) {
+        if (team.hasBaseOwnership()) {
             p.setGameMode(GameMode.SPECTATOR);
 
             int respawnTimer = 5;
 
             p.sendMessage(ChatColor.GRAY + "Respawning in " + respawnTimer + " seconds!");
             Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> {
+                if (!team.isTeamAlive()) return;
+
                 team.getBaseTile().teleportToBase(p);
                 p.setGameMode(GameMode.SURVIVAL);
                 setKit(p);
                 team.getMembersAlive().put(p, true);
             }, 20L * respawnTimer);
+
             return;
         }
 
+        p.getInventory().clear();
         p.setGameMode(GameMode.SPECTATOR);
         team.getMembersAlive().put(p, false);
         p.sendMessage(ChatColor.RED + "Your team does not have their flag! Wait to respawn until it is recaptured!");

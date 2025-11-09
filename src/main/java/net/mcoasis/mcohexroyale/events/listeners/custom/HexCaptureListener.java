@@ -1,6 +1,8 @@
 package net.mcoasis.mcohexroyale.events.listeners.custom;
 
+import net.kyori.adventure.platform.facet.Facet;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
+import net.mcoasis.mcohexroyale.events.TeamWonEvent;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
@@ -19,7 +21,7 @@ public class HexCaptureListener implements Listener {
         String color = team.getTeamColor().getColor();
 
         if (team.getBaseTile().equals(tile)) {
-            Bukkit.broadcastMessage(ChatColor.GRAY + team.getTeamColor().getName() + "'s base tile was recaptured!");
+            Bukkit.broadcastMessage(team.getTeamColor().getColor() + ChatColor.BOLD + team.getTeamColor().getName() + " Team's " + ChatColor.RESET + ChatColor.DARK_AQUA + "base tile was recaptured!");
             for (Player member : team.getMembersAlive().keySet()) {
                 if (team.getMembersAlive().get((member))) continue;
 
@@ -32,6 +34,11 @@ public class HexCaptureListener implements Listener {
                 + " has captured the point (" + color + e.getTile().getQ() + ", " + e.getTile().getR() + ChatColor.GRAY + ")!");
 
         if (tile.getHexFlag() != null) tile.getHexFlag().spawnFlag(false);
+
+        // if it is the middle tile, the team wins the game
+        if (tile.getQ() == 0 && tile.getR() == 0) {
+            Bukkit.getPluginManager().callEvent(new TeamWonEvent(team, tile));
+        }
     }
 
 }

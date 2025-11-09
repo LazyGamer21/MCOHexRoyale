@@ -1,12 +1,12 @@
 package net.mcoasis.mcohexroyale.hexagonal;
 
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
+import net.mcoasis.mcohexroyale.events.TeamLossEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
-import java.util.Random;
 
 public class HexTeam {
 
@@ -16,6 +16,8 @@ public class HexTeam {
     private final HashMap<Player, Boolean> membersAlive = new HashMap<>();
     private final TeamColor teamColor;
     private HexTile baseLocation;
+
+    private boolean teamAlive = false;
 
     public HexTeam(TeamColor teamColor) {
         this.teamColor = teamColor;
@@ -73,6 +75,21 @@ public class HexTeam {
         membersAlive.put(player, true);
     }
 
+    public void checkTeamLoss() {
+        if (hasBaseOwnership()) return;
+
+        boolean teamAlive = false;
+
+        for (boolean alive : getMembersAlive().values()) {
+            teamAlive = alive;
+            if (teamAlive) break;
+        }
+
+        if (teamAlive) return;
+
+        Bukkit.getPluginManager().callEvent(new TeamLossEvent(this, getBaseTile()));
+    }
+
     // -- == Getters + Setters == --
 
     public HashMap<Player, Boolean> getMembersAlive() {
@@ -91,9 +108,11 @@ public class HexTeam {
         this.baseLocation = baseLocation;
     }
 
-    public boolean hasBaseCaptured() {
+    public boolean hasBaseOwnership() {
         return getBaseTile().isCurrentTeamOwns() && getBaseTile().getCurrentTeam().equals(this);
     }
 
-    Random random = new Random();
+    public boolean isTeamAlive() { return this.teamAlive; }
+
+    public void setTeamAlive(boolean teamAlive) { this.teamAlive = teamAlive; }
 }
