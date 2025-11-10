@@ -1,8 +1,12 @@
 package net.mcoasis.mcohexroyale.managers;
 
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
+import net.mcoasis.mcohexroyale.events.listeners.RespawnListener;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
+import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
+import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -37,6 +41,15 @@ public class GameManager {
         MCOHexRoyale.getInstance().restartRunnables();
 
         restartTimerRunnable();
+
+        for (HexTeam team : HexManager.getInstance().getTeams()) {
+            for (Player member : team.getMembersAlive().keySet()) {
+                team.getBaseTile().teleportToBase(member);
+                MCOHexRoyale.getInstance().resetPlayer(member);
+                //! for testing
+                RespawnListener.setKit(member);
+            }
+        }
 
         //! assign teams
         //! teleport players to their team spawns

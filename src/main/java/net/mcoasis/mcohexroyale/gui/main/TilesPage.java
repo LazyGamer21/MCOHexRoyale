@@ -108,7 +108,7 @@ public class TilesPage extends AbstractGuiPage {
 
                 if (teamColor.equals(HexTeam.TeamColor.RED)) material = Material.RED_WOOL;
                 else if (teamColor.equals(HexTeam.TeamColor.BLUE)) material = Material.BLUE_WOOL;
-                else if (teamColor.equals(HexTeam.TeamColor.GREEN)) material = Material.GREEN_WOOL;
+                else if (teamColor.equals(HexTeam.TeamColor.GREEN)) material = Material.LIME_WOOL;
                 else if (teamColor.equals(HexTeam.TeamColor.YELLOW)) material = Material.YELLOW_WOOL;
                 else  {
                     material = Material.WHITE_WOOL;

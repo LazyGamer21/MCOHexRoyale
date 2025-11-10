@@ -30,6 +30,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -42,6 +43,8 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,6 +61,9 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
     private LazyScoreboard scoreboard;
 
+    private FileConfiguration flagsConfig;
+    private File flagsFile;
+
     /* region OnEnable/OnDisable */
 
     @Override
@@ -65,6 +71,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         instance = this;
 
         saveDefaultConfig();
+        createFlagsConfig();
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new TeamPlaceholder().register();
@@ -81,6 +88,29 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         stopGame();
+    }
+
+    public void createFlagsConfig() {
+        flagsFile = new File(getDataFolder(), "flags.yml");
+
+        // If the file doesn't exist, save the default one from resources
+        if (!flagsFile.exists()) {
+            saveResource("flags.yml", false);
+        }
+
+        flagsConfig = YamlConfiguration.loadConfiguration(flagsFile);
+    }
+
+    public void saveFlagsConfig() {
+        try {
+            flagsConfig.save(flagsFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public FileConfiguration getFlagsConfig() {
+        return flagsConfig;
     }
 
     /* endregion */

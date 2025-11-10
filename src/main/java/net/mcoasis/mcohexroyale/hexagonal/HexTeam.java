@@ -17,7 +17,7 @@ public class HexTeam {
     private final TeamColor teamColor;
     private HexTile baseLocation;
 
-    private boolean teamAlive = false;
+    private boolean teamAlive = true;
 
     public HexTeam(TeamColor teamColor) {
         this.teamColor = teamColor;

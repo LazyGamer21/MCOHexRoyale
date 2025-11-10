@@ -22,10 +22,13 @@ public class RespawnListener implements Listener {
         HexTeam team = HexManager.getInstance().getPlayerTeam(p);
 
         if (team == null) return;
-        if (team.hasBaseOwnership()) {
-            p.setGameMode(GameMode.SPECTATOR);
 
-            int respawnTimer = 5;
+        p.getInventory().clear();
+        p.setGameMode(GameMode.SPECTATOR);
+        team.getMembersAlive().put(p, false);
+
+        if (team.hasBaseOwnership()) {
+            int respawnTimer = MCOHexRoyale.getInstance().getConfig().getInt("respawn-timer", 3);
 
             p.sendMessage(ChatColor.GRAY + "Respawning in " + respawnTimer + " seconds!");
             Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> {
@@ -40,15 +43,10 @@ public class RespawnListener implements Listener {
             return;
         }
 
-        p.getInventory().clear();
-        p.setGameMode(GameMode.SPECTATOR);
-        team.getMembersAlive().put(p, false);
         p.sendMessage(ChatColor.RED + "Your team does not have their flag! Wait to respawn until it is recaptured!");
-
-
     }
 
-    private void setKit(Player p) {
+    public static void setKit(Player p) {
         PlayerInventory inv = p.getInventory();
 
         inv.clear();

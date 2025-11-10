@@ -1,10 +1,13 @@
 package net.mcoasis.mcohexroyale.hexagonal;
 
+import net.kyori.adventure.platform.facet.Facet;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import net.mcoasis.mcohexroyale.events.HexLossEvent;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam.TeamColor;
 import net.mcoasis.mcohexroyale.managers.GameManager;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -102,8 +105,9 @@ public class HexTile {
 
             // Track top two counts
             TeamColor topTeam = null;
+            TeamColor secondTeam = null;
             int max = 0;
-            int secondMax = 0; // 👈 will hold the "second team" player count
+            int secondMax = 0;
 
             // get the top 2 teams and subtract second top from top
             for (Map.Entry<TeamColor, Integer> entry : teamCounts.entrySet()) {
@@ -115,7 +119,14 @@ public class HexTile {
                     topTeam = teamColor;
                 } else if (count > secondMax) {
                     secondMax = count;
+                    secondTeam = teamColor;
                 }
+            }
+
+            //send action bar to show team numbers
+            for (Player capturer : capturingPlayers.keySet()) {
+                if (secondTeam == null) continue;
+                capturer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(topTeam.getColor() + topTeam.getName() + ": " + max + ChatColor.RESET + ChatColor.GRAY + ChatColor.BOLD + " | " + ChatColor.RESET + secondTeam.getColor() + secondTeam.getName() + ": " + secondMax));
             }
 
             capturingTeam = null;
@@ -280,6 +291,10 @@ public class HexTile {
         double offsetZ = TEAM_TELEPORT_DISTANCE * Math.sin(angle);
 
         // Create new location at same Y level
+        if (hexFlag == null) {
+            Bukkit.getLogger().warning("[MCOHexRoyale] Failed to respawn player (" + player.getName() + ") - HexFlag not found for tile (" + q + ", " + r + ")");
+            return;
+        }
         Location target = hexFlag.getBase().clone().add(offsetX, 0, offsetZ);
 
         // Keep player facing the same direction
