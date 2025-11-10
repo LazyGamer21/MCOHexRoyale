@@ -29,6 +29,7 @@ import net.mcoasis.mcohexroyale.managers.WorldManager;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -313,10 +314,9 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
             return; // nothing to save
         }
 
-        FileConfiguration config = MCOHexRoyale.getInstance().getConfig();
         String path = "flags." + tile.getQ() + "_" + tile.getR();
 
-        saveFlagData(config, path, flag.getTop(), flag.getBottom(), flag.getBase());
+        saveFlagData(flagsConfig, path, flag.getTop(), flag.getBottom(), flag.getBase());
 
         saveConfig();
     }
@@ -324,17 +324,18 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
 
     public void loadHexFlags() {
-        FileConfiguration config = MCOHexRoyale.getInstance().getConfig();
-        if (!config.isConfigurationSection("flags")) return;
+        if (!flagsConfig.isConfigurationSection("flags")) return;
 
-        for (String key : config.getConfigurationSection("flags").getKeys(false)) {
+        ConfigurationSection flagsSection = flagsConfig.getConfigurationSection("flags");
+        if (flagsSection == null) return;
+
+        for (String key : flagsSection.getKeys(false)) {
             try {
-                // key format: q_r
                 String[] parts = key.split("_");
                 int q = Integer.parseInt(parts[0]);
                 int r = Integer.parseInt(parts[1]);
 
-                Map<FlagLocPos, Location> locs = loadFlagData(config, "flags." + key);
+                Map<FlagLocPos, Location> locs = loadFlagData(flagsConfig, "flags." + key);
 
                 if (locs == null) {
                     Bukkit.getLogger().warning("[HexRoyale] Failed to load flag positions from config!");
@@ -350,7 +351,8 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
                     if (tile != null) {
                         tile.setFlagPositions(top, bottom, base);
                         boolean spawnAtTop = tile.getCurrentTeam() != null;
-                        if (tile.getHexFlag() != null) tile.getHexFlag().spawnFlag(spawnAtTop);
+                        if (tile.getHexFlag() != null)
+                            tile.getHexFlag().spawnFlag(spawnAtTop);
                     }
                 }
             } catch (Exception e) {

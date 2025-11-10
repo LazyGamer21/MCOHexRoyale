@@ -42,14 +42,14 @@
                 </executions>
             </plugin>
             <!--Compile to my plugins folder-->
-            <plugin>
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.3.1</version>
                 <configuration>
                     <outputDirectory>C:\Users\lazyg\Desktop\Coding\MinecraftServers\1.21 Server\plugins</outputDirectory>
                 </configuration>
-            </plugin>
+            </plugin-->
         </plugins>
         <resources>
             <resource>
