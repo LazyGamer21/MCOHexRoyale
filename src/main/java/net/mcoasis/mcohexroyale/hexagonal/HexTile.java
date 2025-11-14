@@ -179,7 +179,7 @@ public class HexTile {
                 capturePercentage -= percentageChange;
 
                 if (capturePercentage <= 0) {
-                    flagOwnershipGone();
+                    flagOwnershipGone(true);
                     capturePercentage = 0;
                     currentTeam = null;
                 }
@@ -202,12 +202,13 @@ public class HexTile {
         hexFlag.moveFlag(capturePercentage);
     }
 
-    private void flagOwnershipGone() {
+    public void flagOwnershipGone(boolean callLossEvent) {
         currentTeamOwns = false;
         HexTeam team = currentTeam;
         currentTeam = null;
         capturePercentage = 0;
-        Bukkit.getPluginManager().callEvent(new HexLossEvent(team, this));
+        hexFlag.spawnFlag(false);
+        if (callLossEvent) Bukkit.getPluginManager().callEvent(new HexLossEvent(team, this));
     }
 
     private void flagOwnershipGained() {
@@ -345,6 +346,10 @@ public class HexTile {
         return r;
     }
 
+    /***
+     *
+     * @return The base of the flag pole
+     */
     public Location getFlagLocation() {
         if (hexFlag == null) return null;
         return hexFlag.getBase();
@@ -369,6 +374,10 @@ public class HexTile {
 
     public boolean isCurrentTeamOwns() {
         return currentTeamOwns;
+    }
+
+    public boolean teamOwns(HexTeam team) {
+        return currentTeam == team && currentTeamOwns;
     }
 
     public int getCapturingPlayersAmount() {

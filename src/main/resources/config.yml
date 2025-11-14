@@ -13,8 +13,50 @@ warning-message-timer: 60
 game-world: "world"
 lobby-world: "world"
 
+# max players teleported to lobby/game at a time
+max-teleport-count: 20
+# interval of teleporting in seconds
+teleport-interval: 5
+
+max-build-height: 100
+
 # game timer is in minutes
 game-timer: 30
-
 # middle tile is in minutes
 middle-tile-timer: 20
+# number of consecutive seconds with ownership of the middle tile needed to win the game
+middle-tile-win-seconds: 120
+
+# kit threshold (number of tiles needed to spawn with that kit including the base tile)
+# kit 1 - full leather (default)
+# kit 2 - full chainmail
+kit2-threshold: 3
+# kit 3 - half iron half chainmail
+kit3-threshold: 5
+# kit 4 - half iron (prot 2 iron) half chainmail
+kit4-threshold: 8
+
+# resource sell values
+stone-value: 1
+coal-value: 2
+iron-value: 5
+gold-value: 8
+diamond-value: 15
+
+# allows blocks to be harvested (by owner of tile)
+blocks-harvestable: true
+
+# accounts for all types of wood (variants, log, wood, stripped, planks)
+wood-harvestable: true
+
+# map floor y level (any blocks at or below this level cannot be harvested)
+map-floor-y-level: 75
+
+# specific blocks to be harvestable
+harvestable-blocks:
+  STONE: 0
+  COBBLESTONE: 0
+  COAL_ORE: 10
+  IRON_ORE: 15
+  GOLD_ORE: 30
+  DIAMOND_ORE: 60

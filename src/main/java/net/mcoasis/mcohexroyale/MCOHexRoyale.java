@@ -6,6 +6,7 @@ import me.ericdavis.lazygui.LazyGui;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
 import net.mcoasis.mcohexroyale.commands.SetTeamCommand;
+import net.mcoasis.mcohexroyale.commands.participant.ShopCommand;
 import net.mcoasis.mcohexroyale.commands.participant.TeamChatCommand;
 import net.mcoasis.mcohexroyale.commands.tabcompleters.SetTeamTabCompleter;
 import net.mcoasis.mcohexroyale.events.listeners.*;
@@ -14,9 +15,12 @@ import net.mcoasis.mcohexroyale.events.listeners.custom.TeamLossListener;
 import net.mcoasis.mcohexroyale.events.listeners.custom.TeamWonListener;
 import net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection.LazySelectionListener;
 import net.mcoasis.mcohexroyale.gui.MainPage;
+import net.mcoasis.mcohexroyale.gui.ShopPage;
 import net.mcoasis.mcohexroyale.gui.main.ResetTilesPage;
 import net.mcoasis.mcohexroyale.gui.main.TeamsPage;
 import net.mcoasis.mcohexroyale.gui.main.teams.SingleTeamPage;
+import net.mcoasis.mcohexroyale.gui.shop.BuyPage;
+import net.mcoasis.mcohexroyale.gui.shop.SellPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexFlag;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
@@ -33,15 +37,11 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
 import java.io.File;
@@ -59,6 +59,8 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
     private BukkitTask gameLogicUpdater;
     private BukkitTask warningMessageTask;
+
+    private BlockBreakListener blockBreakListener;
 
     private LazyScoreboard scoreboard;
 
@@ -83,12 +85,12 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         registerGuiPages();
         registerCommandsAndListeners();
 
-        restartGame();
+        startGame();
     }
 
     @Override
     public void onDisable() {
-        stopGame();
+        GameManager.getInstance().endGame(false);
     }
 
     public void createFlagsConfig() {
@@ -116,16 +118,19 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
     /* endregion */
 
-    public void restartGame() {
+    public void startGame() {
         stopGame();
 
         // populate the grid before other stuff so it can be used
         HexManager.getInstance().populateGrid();
-        scoreboard = new LazyScoreboard(ChatColor.GOLD + "" + ChatColor.BOLD + "-+- Hex Royale -+- ");
+        scoreboard = new LazyScoreboard(ChatColor.GOLD + "" + ChatColor.BOLD + "-+- Hex Royale -+-");
 
         loadHexFlags();
     }
 
+    /***
+     * remove all flag entities, remove scoreboards, stop runnables
+     */
     public void stopGame() {
         for (HexTile tile : HexManager.getInstance().getHexGrid()) {
             if (tile.getHexFlag() != null) tile.getHexFlag().removeFlag();
@@ -134,6 +139,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         for (Player p : Bukkit.getOnlinePlayers()) {
             scoreboard.removeScoreboard(p);
         }
+        stopRunnables();
     }
 
     public void restartRunnables() {
@@ -173,7 +179,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         this.reloadConfig();
     }
 
-    public void stopRunnables() {
+    private void stopRunnables() {
         if (gameLogicUpdater != null && !gameLogicUpdater.isCancelled()) gameLogicUpdater.cancel();
         if (warningMessageTask != null && !warningMessageTask.isCancelled()) warningMessageTask.cancel();
     }
@@ -181,6 +187,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     void sendWarningMessages() {
         for (HexTeam team : HexManager.getInstance().getTeams()) {
             if (!team.getBaseTile().isBaseAndBeingCaptured()) continue;
+            if (!team.isTeamAlive()) continue;
             for (Player member : team.getMembersAlive().keySet()) {
                 // send action bar message and sound effect
                 member.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(ChatColor.RED + "Your base is being captured!"));
@@ -214,11 +221,14 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     }
 
     private void registerCommandsAndListeners() {
+        blockBreakListener = new BlockBreakListener();
+
         // register commands
         getCommand("mcohexroyale").setExecutor(new HexRoyaleCommand());
         getCommand("setteam").setExecutor(new SetTeamCommand());
         TeamChatCommand teamChatCommand = new TeamChatCommand();
         getCommand("teamchat").setExecutor(teamChatCommand);
+        getCommand("shop").setExecutor(new ShopCommand());
 
         // register tab completers
         getCommand("setteam").setTabCompleter(new SetTeamTabCompleter());
@@ -229,15 +239,19 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new HexLossListener(), this);
         getServer().getPluginManager().registerEvents(new TeamLossListener(), this);
         getServer().getPluginManager().registerEvents(new TeamWonListener(), this);
-        getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
+        getServer().getPluginManager().registerEvents(blockBreakListener, this);
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(), this);
         getServer().getPluginManager().registerEvents(new EntityDamageEntityListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerChatListener(teamChatCommand), this);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new RespawnListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerChangeWorldListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerLeaveListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerCraftListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerInteractWithMapListener(), this);
 
-
+        blockBreakListener.loadHarvestableBlocks(getConfig());
     }
 
     private void registerLibraries() {
@@ -254,12 +268,18 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         new ResetTilesPage();
 
         new SingleTeamPage();
+
+
+        new ShopPage(this);
+
+        new BuyPage(this);
+        new SellPage(this);
     }
 
     private void updateScoreboard() {
         if (scoreboard == null) return;
 
-        int lineLength = 19;
+        int lineLength = 18;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             // only update scoreboard for players in the game world
@@ -275,42 +295,48 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
             scoreboard.setStat(player, "timer", ChatColor.YELLOW + "Game End: "
                     + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(GameManager.getInstance().getGameTimerSeconds()));
-            scoreboard.setStat(player, "middle", ChatColor.YELLOW + "Middle Tile: "
-                    + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(GameManager.getInstance().getMiddleTileSeconds()));
+
+            if (GameManager.getInstance().getMiddleTileSeconds() <= 0) {
+                if (HexCaptureListener.middleTileTeam != null) {
+                    int timeleft = HexCaptureListener.getWinTimeLeft();
+                    scoreboard.setStat(player, "middle", ChatColor.YELLOW + "Middle Tile: "
+                            + HexCaptureListener.middleTileTeam.getTeamColor().getColor() + HexCaptureListener.middleTileTeam.getTeamColor().getName()
+                            + ChatColor.WHITE + " - " + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(timeleft));
+                } else {
+                    scoreboard.setStat(player, "middle", ChatColor.YELLOW + "Middle Tile: "
+                            + ChatColor.WHITE + "Capturable");
+                }
+            } else {
+                scoreboard.setStat(player, "middle", ChatColor.YELLOW + "Middle Tile: "
+                        + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(GameManager.getInstance().getMiddleTileSeconds()));
+            }
 
             scoreboard.addBlankLine(player);
 
             for (HexTeam team : HexManager.getInstance().getTeams()) {
-                int alive = (int) team.getMembersAlive().entrySet().stream().filter(Map.Entry::getValue).count();
-                int total = team.getMembersAlive().size();
+                int alive = team.getMembersAlive().isEmpty() ? 0 : (int) team.getMembersAlive().entrySet().stream().filter(Map.Entry::getValue).count();
+                int total = team.getMembersAlive().isEmpty() ? 0 : team.getMembersAlive().size();
 
                 String line = team.getTeamColor().getColor() + team.getTeamColor().getName() + " Alive: " + alive + "/" + total;
                 String line2 = team.getTeamColor().getColor() + team.getTeamColor().getName() + " Tiles: " + HexManager.getInstance().getOwnedTiles(team);
 
                 scoreboard.setStat(player, team.getTeamColor().getName(), line, lineLength, true);
                 scoreboard.setStat(player, team.getTeamColor().getName() + "2", line2, lineLength, true);
-                //scoreboard.addBlankLine(player);
             }
 
             scoreboard.addBlankLine(player);
-            scoreboard.setStat(player, "endLine", ChatColor.GOLD + "" + ChatColor.BOLD + "-+---------------+-");
+            scoreboard.setStat(player, "endLine", ChatColor.GOLD + "" + ChatColor.BOLD + "-+--------------+-");
 
             scoreboard.updateStats(player);
         }
     }
 
-    //! make game states
-    //! stop players from breaking blocks in game world
-    //!    -  if the block was in a resource tile area then give them the resource they mined
-    //! only allow placing blocks on base tiles (any team can place on any base tile)
-    //!    -  make a build height so players cannot go above the walls
-    //!    -  only allow breaking player-placed blocks
-    //! send a title message to a team when their base gets captured
     //! send a message to all players when any team's base tile is captured like the bed destruction message in bedwars
 
     public void saveHexFlag(HexTile tile) {
         HexFlag flag = tile.getHexFlag();
         if (flag == null || flag.getBase() == null || flag.getTop() == null) {
+            Bukkit.getLogger().warning("[HexRoyale] Failed to save flag positions for flag (" + tile.getQ() + ", " + tile.getR() + ")");
             return; // nothing to save
         }
 
@@ -318,11 +344,13 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
         saveFlagData(flagsConfig, path, flag.getTop(), flag.getBottom(), flag.getBase());
 
-        saveConfig();
+        saveFlagsConfig();
     }
 
 
-
+    /***
+     * load all hex flags from config and set their positions in the HexTiles
+     */
     public void loadHexFlags() {
         if (!flagsConfig.isConfigurationSection("flags")) return;
 
@@ -439,6 +467,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
         // reset all player things that may change like potions effects, survival mode, etc
         player.getInventory().clear();
+        player.getEnderChest().clear();
         player.setGameMode(GameMode.SURVIVAL);
         player.setHealth(20.0);
         player.setFoodLevel(20);

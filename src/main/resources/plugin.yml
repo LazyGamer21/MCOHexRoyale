@@ -19,6 +19,9 @@ commands:
     description: chat only player's on same hex team can see
     usage: /teamchat
     aliases: tc
+  shop:
+    description: opens player shop to buy/sell stuff
+    usage: /shop
 
 permissions:
   hexroyale.admin:

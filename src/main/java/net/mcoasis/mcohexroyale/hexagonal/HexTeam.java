@@ -75,8 +75,8 @@ public class HexTeam {
         membersAlive.put(player, true);
     }
 
-    public void checkTeamLoss() {
-        if (hasBaseOwnership()) return;
+    public void checkTeamLoss(boolean bypassBaseOwnership) {
+        if (hasBaseOwnership() && !bypassBaseOwnership) return;
 
         boolean teamAlive = false;
 

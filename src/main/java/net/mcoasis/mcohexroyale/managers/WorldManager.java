@@ -3,7 +3,12 @@ package net.mcoasis.mcohexroyale.managers;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Horse;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.Pig;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,11 +42,19 @@ public class WorldManager {
 
     private final Set<Location> placedGameBlocks = new HashSet<>();
 
+    /**
+     * Removes all horses, pigs, items, and player-placed blocks from the game world.
+     */
     public void resetGameWorld() {
         // Logic to reset the game world to its initial state
+        for (Entity entity : gameWorld.getEntities()) {
+            if (entity instanceof Pig || entity instanceof Horse || entity instanceof Item) {
+                entity.remove();
+            }
+        }
         for (Location loc : placedGameBlocks) {
             if (loc.getWorld() != null) {
-                loc.getBlock().setType(org.bukkit.Material.AIR);
+                loc.getBlock().setType(Material.AIR);
             }
         }
         placedGameBlocks.clear();
@@ -51,16 +64,8 @@ public class WorldManager {
         return gameWorld;
     }
 
-    public void setGameWorld(World gameWorld) {
-        this.gameWorld = gameWorld;
-    }
-
     public World getLobbyWorld() {
         return lobbyWorld;
-    }
-
-    public void setLobbyWorld(World lobbyWorld) {
-        this.lobbyWorld = lobbyWorld;
     }
 
     public Set<Location> getPlacedGameBlocks() {

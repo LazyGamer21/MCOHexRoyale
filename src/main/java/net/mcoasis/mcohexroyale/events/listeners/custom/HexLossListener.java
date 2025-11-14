@@ -7,6 +7,7 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -37,7 +38,22 @@ public class HexLossListener implements Listener {
 
         if (tile.equals(team.getBaseTile())) {
             Bukkit.broadcastMessage(ChatColor.BOLD + team.getTeamColor().getColor() + team.getTeamColor().getName() + " Team" + ChatColor.RESET + ChatColor.DARK_AQUA + " has lost their base tile!");
-            team.checkTeamLoss();
+            for (Player member : team.getMembersAlive().keySet()) {
+                // send a title message saying "Base Lost!" and send dragon sound
+                member.sendTitle(ChatColor.RED + "Base Lost!", ChatColor.GRAY + "You can no longer respawn!", 10, 70, 20);
+                member.playSound(member.getLocation(), "minecraft:entity.ender_dragon.growl", 1.0f, 1.0f);
+            }
+            team.checkTeamLoss(false);
+            return;
+        }
+
+        if (tile.getQ() == 0 && tile.getR() == 0) {
+            HexCaptureListener.getWinCountdown().cancel();
+
+            Bukkit.broadcastMessage(ChatColor.BOLD + team.getTeamColor().getColor() + team.getTeamColor().getName() + " Team "
+                    + ChatColor.RESET + ChatColor.GRAY + "has lost the middle tile!");
+            HexCaptureListener.middleTileTeam = null;
+            return;
         }
 
     }

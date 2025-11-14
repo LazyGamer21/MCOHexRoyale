@@ -9,23 +9,23 @@ import org.jetbrains.annotations.NotNull;
 public class TeamWonEvent extends Event {
     private static final HandlerList HANDLERS = new HandlerList();
     private final HexTeam team;
-    private final HexTile tile;
+    private final boolean middleTile;
 
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
-    public TeamWonEvent(HexTeam team, HexTile tile) {
+    public TeamWonEvent(HexTeam team, boolean middleTile) {
         this.team = team;
-        this.tile = tile;
+        this.middleTile = middleTile;
     }
 
     public HexTeam getTeam() {
         return this.team;
     }
 
-    public HexTile getTile() {
-        return this.tile;
+    public boolean isMiddleTile() {
+        return this.middleTile;
     }
 
     @Override

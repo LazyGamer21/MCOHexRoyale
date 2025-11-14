@@ -130,6 +130,8 @@ public class HexFlag {
             Location loc = spawnToClone.clone().add(fb.offset());
 
             BlockDisplay display = (BlockDisplay) flagWorld.spawnEntity(loc, EntityType.BLOCK_DISPLAY);
+            // Make it visible from far away (default is about 48 blocks)
+            display.setViewRange(512f); // max is 512f (512 blocks)
             display.setBlock(fb.data());
 
             displays.add(display);

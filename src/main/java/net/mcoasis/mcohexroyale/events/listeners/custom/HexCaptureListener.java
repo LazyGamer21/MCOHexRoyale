@@ -3,6 +3,8 @@ package net.mcoasis.mcohexroyale.events.listeners.custom;
 import net.kyori.adventure.platform.facet.Facet;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.events.TeamWonEvent;
+import net.mcoasis.mcohexroyale.events.listeners.RespawnListener;
+import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
@@ -11,8 +13,27 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class HexCaptureListener implements Listener {
+
+    public static BukkitRunnable getWinCountdown() {
+        return winCountdown;
+    }
+
+    private static BukkitRunnable winCountdown;
+    private int secondsNeeded;
+
+    public static int getWinTimeLeft() {
+        return winTimeLeft;
+    }
+
+    private static int winTimeLeft;
+
+    // will only be non-null if a team currently owns the middle tile
+    public static HexTeam middleTileTeam = null;
+
+    private HexTeam teamWithMiddleTile = null;
 
     @EventHandler
     public void onHexCapture(HexCaptureEvent e) {
@@ -25,10 +46,7 @@ public class HexCaptureListener implements Listener {
             for (Player member : team.getMembersAlive().keySet()) {
                 if (team.getMembersAlive().get((member))) continue;
 
-                // set player to alive if they aren't and teleport them to base
-                MCOHexRoyale.getInstance().resetPlayer(member);
-                team.getBaseTile().teleportToBase(member);
-                team.getMembersAlive().put(member, true);
+                RespawnListener.stuff(member);
             }
         } else Bukkit.broadcastMessage(color + ChatColor.BOLD + team.getTeamColor().getName() + " Team" + ChatColor.RESET + ChatColor.GRAY
                 + " has captured the point (" + color + e.getTile().getQ() + ", " + e.getTile().getR() + ChatColor.GRAY + ")!");
@@ -37,8 +55,54 @@ public class HexCaptureListener implements Listener {
 
         // if it is the middle tile, the team wins the game
         if (tile.getQ() == 0 && tile.getR() == 0) {
-            Bukkit.getPluginManager().callEvent(new TeamWonEvent(team, tile));
+            teamWithMiddleTile = team;
+            startWinCountdown(teamWithMiddleTile);
         }
     }
+
+    void startWinCountdown(HexTeam team) {
+        MCOHexRoyale plugin = MCOHexRoyale.getInstance();
+        secondsNeeded = plugin.getConfig().getInt("middle-tile-win-timer", 120);
+
+        Bukkit.broadcastMessage(ChatColor.BOLD + team.getTeamColor().getColor() + team.getTeamColor().getName() + " Team "
+                + ChatColor.RESET + ChatColor.GRAY + "has captured the middle tile! Hold it for "
+                + ChatColor.BOLD + ChatColor.YELLOW + secondsNeeded
+                + ChatColor.RESET + ChatColor.GRAY + " seconds to win!");
+
+        //play dragon sound for all players
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.playSound(player.getLocation(), "minecraft:entity.ender_dragon.growl", 1.0f, 1.0f);
+        }
+
+        // Start a repeating task to count down
+        winTimeLeft = secondsNeeded;
+        winCountdown = new org.bukkit.scheduler.BukkitRunnable() {
+            int timeLeft = secondsNeeded;
+
+            @Override
+            public void run() {
+                // If the team lost control of the middle tile, cancel the countdown
+                HexTile middle = HexManager.getInstance().getHexTile(0, 0);
+                if (!middle.teamOwns(teamWithMiddleTile)) {
+                    cancel();
+                    middleTileTeam = null;
+                    return;
+                }
+                middleTileTeam = teamWithMiddleTile;
+
+                // If the countdown has finished, fire the win event
+                if (timeLeft <= 0) {
+                    Bukkit.getPluginManager().callEvent(new TeamWonEvent(teamWithMiddleTile, true));
+                    cancel();
+                    return;
+                }
+
+                timeLeft--;
+                winTimeLeft = timeLeft;
+            }
+        };
+        winCountdown.runTaskTimer(plugin, 20L, 20L); // 20 ticks = 1 second
+    }
+
 
 }

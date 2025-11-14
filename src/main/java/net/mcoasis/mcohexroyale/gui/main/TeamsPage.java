@@ -3,12 +3,14 @@ package net.mcoasis.mcohexroyale.gui.main;
 import me.ericdavis.lazygui.item.GuiItem;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import me.ericdavis.lazygui.test.GuiManager;
+import net.kyori.adventure.platform.facet.Facet;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.MainPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam.TeamColor;
 import net.mcoasis.mcohexroyale.gui.main.teams.SingleTeamPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
+import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.managers.WorldManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -61,18 +63,42 @@ public class TeamsPage extends AbstractGuiPage {
                 .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.YELLOW).getMembersAlive().size()));
 
         assignItem(playerId, 31, new GuiItem(Material.STONE, e -> {
+            GameManager.GameState currentGameState = GameManager.getInstance().getGameState();
+            if (currentGameState.equals(GameManager.GameState.STARTING) || currentGameState.equals(GameManager.GameState.INGAME)) {
+                e.getWhoClicked().sendMessage(ChatColor.RED + "Cannot randomize teams while game is running! Use /setteam for specific players");
+                e.getWhoClicked().closeInventory();
+                return;
+            }
             e.getWhoClicked().sendMessage(ChatColor.GRAY + "[HexRoyale] teams randomized");
-            // for every player in lobby who does not have "nojoin" permission
+            // for every player who does not have "nojoin" permission
             List<Player> playersToTeam = new ArrayList<>();
             for (Player p : Bukkit.getOnlinePlayers()) {
-                if (!p.getWorld().equals(WorldManager.getInstance().getLobbyWorld())) continue;
                 if (p.hasPermission("hexroyale.nojoin")) continue;
                 playersToTeam.add(p);
             }
-            assignPlayersToTeams(playersToTeam);
+            assignPlayersToTeams(playersToTeam, true);
         })
-                .setName(ChatColor.GRAY + "Randomize Teams")
-                .setLore("Sets all players in lobby world to a random team", "Only use while game is not running"));
+                .setName(ChatColor.GRAY + "Randomize Teams (2)")
+                .setLore("Sets all players in lobby world to a random team", "Only use while game is not running", "2 Teams"));
+
+        assignItem(playerId, 22, new GuiItem(Material.STONE, e -> {
+            GameManager.GameState currentGameState = GameManager.getInstance().getGameState();
+            if (currentGameState.equals(GameManager.GameState.STARTING) || currentGameState.equals(GameManager.GameState.INGAME)) {
+                e.getWhoClicked().sendMessage(ChatColor.RED + "Cannot randomize teams while game is running! Use /setteam for specific players");
+                e.getWhoClicked().closeInventory();
+                return;
+            }
+            e.getWhoClicked().sendMessage(ChatColor.GRAY + "[HexRoyale] teams randomized");
+            // for every player who does not have "nojoin" permission
+            List<Player> playersToTeam = new ArrayList<>();
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (p.hasPermission("hexroyale.nojoin")) continue;
+                playersToTeam.add(p);
+            }
+            assignPlayersToTeams(playersToTeam, false);
+        })
+                .setName(ChatColor.GRAY + "Randomize Teams (4)")
+                .setLore("Sets all players in lobby world to a random team", "Only use while game is not running", "4 Teams"));
 
         assignItem(playerId, 33, new GuiItem(Material.BLUE_WOOL, e -> {
             SingleTeamPage.teamToOpen.put(playerId, HexTeam.TeamColor.BLUE);
@@ -82,8 +108,12 @@ public class TeamsPage extends AbstractGuiPage {
                 .setLore(ChatColor.GRAY + "Players: " + HexManager.getInstance().getTeam(HexTeam.TeamColor.BLUE).getMembersAlive().size()));
     }
 
-    private void assignPlayersToTeams(List<Player> players) {
-        int numTeams = 4;
+    private void assignPlayersToTeams(List<Player> players, boolean twoTeams) {
+        // Clear all teams first
+        for (HexTeam team : HexManager.getInstance().getTeams()) {
+            team.getMembersAlive().clear();
+        }
+        int numTeams = twoTeams ? 2 : 4;
         HexTeam.TeamColor[] teamColors = {TeamColor.RED, TeamColor.BLUE, TeamColor.GREEN, TeamColor.YELLOW};
 
         // Shuffle to randomize player order
@@ -92,7 +122,7 @@ public class TeamsPage extends AbstractGuiPage {
         // Split evenly
         for (int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
-            int teamIndex = i % numTeams; // distributes evenly across 4 teams
+            int teamIndex = i % numTeams; // distributes evenly across teams
             TeamColor team = teamColors[teamIndex];
             TeamColor teamColor;
 
