@@ -1,9 +1,11 @@
 package net.mcoasis.mcohexroyale.events.listeners.custom.lazyselection;
 
 import me.ericdavis.lazySelection.LocationType;
+import me.ericdavis.lazySelection.events.LazyPointsCompleteEvent;
 import me.ericdavis.lazySelection.events.LocationSetEvent;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
+import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,16 +19,54 @@ import java.util.*;
 public class LazySelectionListener implements Listener {
 
     @EventHandler
-    public void onFlagSet(LocationSetEvent e) {
+    public void onLocationSet(LocationSetEvent e) {
         if (e.getLocationType() == LocationType.AREA) return;
         if (e.getCollection() == null) return;
 
-        Player p = e.getPlayer();
-        UUID playerId = p.getUniqueId();
+        UUID playerId = e.getPlayer().getUniqueId();
+
+        // check if the player is setting a flag
         HashMap<UUID, HexTile> playerSettingFlag = HexManager.getInstance().getPlayerSettingFlag();
+        if (playerSettingFlag.containsKey(playerId)){
+            handleSettingFlag(e, playerSettingFlag, playerId);
+            return;
+        }
+    }
 
-        if (!playerSettingFlag.containsKey(playerId)) return;
+    @EventHandler
+    public void onPointsCompleted(LazyPointsCompleteEvent e) {
+        UUID playerId = e.getPlayer().getUniqueId();
 
+        // check if the player is setting a team spawn
+        HashMap<UUID, HexTeam.TeamColor> settingTeamSpawns = HexManager.getInstance().getSettingTeamSpawns();
+        if (settingTeamSpawns.containsKey(playerId)){
+            handleSettingTeamSpawns(e, settingTeamSpawns, playerId);
+            return;
+        }
+    }
+
+    private void handleSettingTeamSpawns(LazyPointsCompleteEvent e, HashMap<UUID, HexTeam.TeamColor> settingTeamSpawns, UUID playerId) {
+        List<Location> spawnPoints = e.getPoints();
+
+        HexTeam.TeamColor teamColor = settingTeamSpawns.get(playerId);
+        Set<Location> spawnLocations = HexManager.getInstance().getTeam(teamColor).getSpawnLocations();
+
+        spawnLocations.clear();
+        spawnLocations.addAll(spawnPoints);
+
+        MCOHexRoyale.getInstance().clearSpawns(teamColor);
+
+        for (Location loc : spawnPoints) {
+            MCOHexRoyale.getInstance().saveSpawn(teamColor, loc);
+        }
+
+        settingTeamSpawns.remove(playerId);
+
+        e.getPlayer().sendMessage(ChatColor.AQUA + "Successfully set " + ChatColor.LIGHT_PURPLE + spawnPoints.size() + ChatColor.AQUA + " spawn point(s) for "
+                + teamColor.getColor() + teamColor.getName() + " Team");
+    }
+
+    private void handleSettingFlag(LocationSetEvent e, HashMap<UUID, HexTile> playerSettingFlag, UUID playerId) {
         HexTile tile = playerSettingFlag.get(playerId);
 
         List<Location> flagPoints = e.getCollection();

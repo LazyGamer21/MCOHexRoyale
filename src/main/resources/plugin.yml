@@ -22,9 +22,16 @@ commands:
   shop:
     description: opens player shop to buy/sell stuff
     usage: /shop
+    permission: hexroyale.shop
+  setmiddlespawn:
+    description: sets the middle tile spawn location
+    usage: /setmiddlespawn
+    permission: hexroyale.admin
 
 permissions:
   hexroyale.admin:
     default: false
   hexroyale.nojoin:
     default: false
+  hexroyale.shop:
+    default: op

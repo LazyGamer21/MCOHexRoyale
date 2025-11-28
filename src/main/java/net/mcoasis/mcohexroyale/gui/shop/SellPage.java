@@ -4,6 +4,7 @@ import me.ericdavis.lazygui.item.GuiItem;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.gui.ShopPage;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -14,6 +15,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class SellPage extends AbstractGuiPage {
@@ -61,6 +63,25 @@ public class SellPage extends AbstractGuiPage {
         return List.of();
     }
 
+    public int getItemCount(Player p, Material material) {
+        int total = 0;
+
+        // Check all inventory contents (includes armor slots in some versions, but that's fine)
+        for (ItemStack item : p.getInventory().getContents()) {
+            if (item != null && item.getType() == material) {
+                total += item.getAmount();
+            }
+        }
+
+        // Also check offhand
+        ItemStack offhand = p.getInventory().getItemInOffHand();
+        if (offhand != null && offhand.getType() == material) {
+            total += offhand.getAmount();
+        }
+
+        return total;
+    }
+
     private boolean sellItems(Player p, Material material, int amount, int sellCost) {
         PlayerInventory pInv = p.getInventory();
 
@@ -71,7 +92,7 @@ public class SellPage extends AbstractGuiPage {
             }
         }
 
-        if (total < amount) {
+        if (total < amount || amount <= 0) {
             p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             p.sendMessage(ChatColor.RED + "You don't have enough of that to sell!");
             return false;
@@ -102,7 +123,6 @@ public class SellPage extends AbstractGuiPage {
         return true;
     }
 
-
     private void setCobblestoneButtons(UUID uuid) {
         Material material = Material.COBBLESTONE;
         int sellCost = 1;
@@ -123,7 +143,7 @@ public class SellPage extends AbstractGuiPage {
 
     private void setIronButtons(UUID uuid) {
         Material material = Material.IRON_INGOT;
-        int sellCost = 30;
+        int sellCost = 50;
         String itemName = "Iron";
         int startingSlot = 13;
 
@@ -132,7 +152,7 @@ public class SellPage extends AbstractGuiPage {
 
     private void setGoldButtons(UUID uuid) {
         Material material = Material.GOLD_INGOT;
-        int sellCost = 60;
+        int sellCost = 100;
         String itemName = "Gold";
         int startingSlot = 14;
 
@@ -141,7 +161,7 @@ public class SellPage extends AbstractGuiPage {
 
     private void setDiamondButtons(UUID uuid) {
         Material material = Material.DIAMOND;
-        int sellCost = 100;
+        int sellCost = 200;
         String itemName = "Diamond";
         int startingSlot = 15;
 
@@ -159,9 +179,9 @@ public class SellPage extends AbstractGuiPage {
         }).setName(ChatColor.YELLOW + "Sell 8 " + itemName)
                 .setLore("Total Price: " + sellCost * 8));
 
-        assignItem(uuid, startingSlot + 18, new GuiItem(new ItemStack(material, 16), e -> {
-            sellItems((Player) e.getWhoClicked(), material, 16, sellCost);
-        }).setName(ChatColor.YELLOW + "Sell 16 " + itemName)
-                .setLore("Total Price: " + sellCost * 16));
+        assignItem(uuid, startingSlot + 18, new GuiItem(new ItemStack(material, 64), e -> {
+            sellItems((Player) e.getWhoClicked(), material, getItemCount(Objects.requireNonNull(Bukkit.getPlayer(uuid)), material), sellCost);
+        }).setName(ChatColor.YELLOW + "Sell All " + itemName)
+                .setLore("Total Price: " + sellCost * getItemCount(Objects.requireNonNull(Bukkit.getPlayer(uuid)), material)));
     }
 }

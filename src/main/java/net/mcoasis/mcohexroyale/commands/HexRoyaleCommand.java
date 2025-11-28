@@ -2,6 +2,7 @@ package net.mcoasis.mcohexroyale.commands;
 
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.gui.MainPage;
+import net.mcoasis.mcohexroyale.managers.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -28,6 +29,8 @@ public class HexRoyaleCommand implements CommandExecutor {
             player.sendMessage(ChatColor.RED + "An Error Occurred: Could not open GUI");
             Bukkit.getLogger().warning("Could not open page -- ensure it is created in main plugin class");
         }
+
+        Bukkit.broadcastMessage(ChatColor.GRAY + "Game State: " + GameManager.getInstance().getGameState().name());
 
         return true;
     }

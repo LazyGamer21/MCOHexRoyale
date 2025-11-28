@@ -1,6 +1,5 @@
 package net.mcoasis.mcohexroyale.events.listeners;
 
-import com.sk89q.worldedit.world.block.BlockType;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
@@ -28,16 +27,6 @@ public class BlockBreakListener implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
 
-        boolean inGame = GameManager.getInstance().getGameState().equals(GameManager.GameState.INGAME);
-        boolean playerIsAdmin = e.getPlayer().hasPermission("hexroyale.admin");
-        if (!inGame) {
-            // only let admins break/place blocks in the game world
-            if (!playerIsAdmin){
-                e.setCancelled(true);
-            }
-            return;
-        }
-
         Location brokenBlockLocation = e.getBlock().getLocation();
 
         // allow breaking blocks that were placed by players
@@ -46,13 +35,20 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
+        // don't allow breaking blocks that players did not place
+        boolean playerIsAdmin = e.getPlayer().hasPermission("hexroyale.admin");
+        if (!playerIsAdmin){
+            e.setCancelled(true);
+        } else {
+            if (GameManager.getInstance().getGameState() == GameManager.GameState.INGAME) {
+                e.setCancelled(true);
+            }
+        }
+
         // ignore blocks broken by players not in teams (e.g., spectators, admins)
         Player p = e.getPlayer();
         HexTeam team = HexManager.getInstance().getPlayerTeam(p);
         if (team == null) return;
-
-        // don't allow breaking blocks that players did not place
-        e.setCancelled(true);
 
         // get the closest HexTile to the broken block
         double closestDistance = Double.MAX_VALUE;

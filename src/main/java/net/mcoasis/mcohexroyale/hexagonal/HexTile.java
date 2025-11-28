@@ -11,6 +11,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -95,8 +96,8 @@ public class HexTile {
             // Count players per team
             Map<TeamColor, Integer> teamCounts = new EnumMap<>(TeamColor.class);
 
-            for (Player capturer : capturingPlayers.keySet()) {
-                HexTeam team = HexManager.getInstance().getPlayerTeam(capturer);
+            for (Map.Entry<Player, HexTeam> entry : capturingPlayers.entrySet()) {
+                HexTeam team = entry.getValue();
                 if (team == null) continue;
 
                 TeamColor color = team.getTeamColor();
@@ -220,6 +221,7 @@ public class HexTile {
     private void setCapturers() {
         capturingPlayers.clear();
         for (HexTeam team : HexManager.getInstance().getTeams()) {
+            if (!team.isTeamAlive()) continue;
             for (Player member : team.getMembersAlive().keySet()) {
                 if (team.getMembersAlive().get(member) == false) continue;
                 if (member.isDead()) continue;
@@ -278,11 +280,36 @@ public class HexTile {
     private final Random random = new Random();
 
     /**
-     * Teleports a player to a random spot around their flag
+     * Teleports a player this team's base. Uses this tile's {@link HexTeam} spawnPoints if not empty.
+     * Teleports to a random spot around the flag if {@link HexTeam} spawnPoints is empty.
      *
-     * @param player   the player to teleport
+     * @param p the player to teleport
      */
-    public void teleportToBase(Player player) {
+    public void teleportToBase(Player p, boolean useSpawns) {
+        Set<Location> spawnPoints = baseTeam.getSpawnLocations();
+
+        if (spawnPoints.isEmpty() || !useSpawns) {
+            teleportAroundFlag(p);
+            return;
+        }
+
+        List<Location> spawnsList = new ArrayList<>(spawnPoints);
+        Location spawn = spawnsList.get(random.nextInt(spawnsList.size())).clone();
+
+        // set pitch and yaw to face the center of the flag
+        Location flagLoc = getHexFlag().getBase();
+        if (flagLoc == null) return;
+        Vector direction = flagLoc.toVector().subtract(spawn.toVector()).normalize();
+        float yaw = (float) Math.toDegrees(Math.atan2(-direction.getX(), direction.getZ()));
+        float pitch = (float) Math.toDegrees(Math.asin(direction.getY()));
+        spawn.setYaw(yaw);
+        spawn.setPitch(pitch);
+        spawn.setY(spawn.getBlockY() + 1.5); // spawn above ground to avoid falling through blocks
+
+        p.teleport(spawn);
+    }
+
+    private void teleportAroundFlag(Player p) {
         // Random angle in radians (0 to 2π)
         double angle = random.nextDouble() * 2 * Math.PI;
 
@@ -293,18 +320,18 @@ public class HexTile {
 
         // Create new location at same Y level
         if (hexFlag == null) {
-            Bukkit.getLogger().warning("[MCOHexRoyale] Failed to respawn player (" + player.getName() + ") - HexFlag not found for tile (" + q + ", " + r + ")");
+            Bukkit.getLogger().warning("[MCOHexRoyale] Failed to respawn player (" + p.getName() + ") - HexFlag not found for tile (" + q + ", " + r + ")");
             return;
         }
         Location target = hexFlag.getBase().clone().add(offsetX, 0, offsetZ);
 
         // Keep player facing the same direction
-        target.setYaw(player.getLocation().getYaw());
-        target.setPitch(player.getLocation().getPitch());
+        target.setYaw(p.getLocation().getYaw());
+        target.setPitch(p.getLocation().getPitch());
 
         // Teleport
-        if (target.getWorld() != null) player.teleport(getHighestSpawnLocation(target.getWorld(), target.getBlockX(), target.getBlockZ()));
-        else Bukkit.getLogger().severe("[MCOHexRoyale] Failed to respawn player (" + player.getName() + ") -- World not found in teleport location");
+        if (target.getWorld() != null) p.teleport(Objects.requireNonNull(getHighestSpawnLocation(target.getWorld(), target.getBlockX(), target.getBlockZ())));
+        else Bukkit.getLogger().severe("[MCOHexRoyale] Failed to respawn player (" + p.getName() + ") -- World not found in teleport location");
     }
 
     private Location getHighestSpawnLocation(World world, int x, int z) {
@@ -363,11 +390,7 @@ public class HexTile {
         return capturePercentage;
     }
 
-    public @Nullable HexFlag getHexFlag() {
-        return hexFlag;
-    }
-
-    public HexFlag getOrCreateHexFlag() {
+    public HexFlag getHexFlag() {
         if (hexFlag == null) hexFlag = new HexFlag(this);
         return hexFlag;
     }

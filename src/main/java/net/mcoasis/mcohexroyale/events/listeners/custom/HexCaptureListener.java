@@ -10,6 +10,7 @@ import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -41,6 +42,10 @@ public class HexCaptureListener implements Listener {
         HexTile tile = e.getTile();
         String color = team.getTeamColor().getColor();
 
+        for (Player member : team.getMembersAlive().keySet()) {
+            member.playSound(member.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+        }
+
         if (team.getBaseTile().equals(tile)) {
             Bukkit.broadcastMessage(team.getTeamColor().getColor() + ChatColor.BOLD + team.getTeamColor().getName() + " Team's " + ChatColor.RESET + ChatColor.DARK_AQUA + "base tile was recaptured!");
             for (Player member : team.getMembersAlive().keySet()) {
@@ -69,9 +74,13 @@ public class HexCaptureListener implements Listener {
                 + ChatColor.BOLD + ChatColor.YELLOW + secondsNeeded
                 + ChatColor.RESET + ChatColor.GRAY + " seconds to win!");
 
-        //play dragon sound for all players
+        //play sounds for all players
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.playSound(player.getLocation(), "minecraft:entity.ender_dragon.growl", 1.0f, 1.0f);
+            if (HexManager.getInstance().getPlayerTeam(player) == team) {
+                player.playSound(player.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 3.0f, 1.0f);
+                continue;
+            }
+            player.playSound(player.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1.0f, 1.0f);
         }
 
         // Start a repeating task to count down

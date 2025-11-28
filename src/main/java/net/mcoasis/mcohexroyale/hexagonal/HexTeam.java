@@ -4,9 +4,10 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.events.TeamLossEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.HashMap;
+import java.util.*;
 
 public class HexTeam {
 
@@ -16,6 +17,8 @@ public class HexTeam {
     private final HashMap<Player, Boolean> membersAlive = new HashMap<>();
     private final TeamColor teamColor;
     private HexTile baseLocation;
+
+    private final Set<Location> spawnLocations = new HashSet<>();
 
     private boolean teamAlive = true;
 
@@ -61,6 +64,11 @@ public class HexTeam {
             return name;
         }
 
+    }
+
+    public void loadTeamSpawns() {
+        this.spawnLocations.clear();
+        this.spawnLocations.addAll(MCOHexRoyale.getInstance().loadSpawns(teamColor));
     }
 
     /**
@@ -109,10 +117,15 @@ public class HexTeam {
     }
 
     public boolean hasBaseOwnership() {
+        if (getBaseTile() == null) return false;
         return getBaseTile().isCurrentTeamOwns() && getBaseTile().getCurrentTeam().equals(this);
     }
 
     public boolean isTeamAlive() { return this.teamAlive; }
 
     public void setTeamAlive(boolean teamAlive) { this.teamAlive = teamAlive; }
+
+    public Set<Location> getSpawnLocations() {
+        return spawnLocations;
+    }
 }

@@ -33,7 +33,7 @@ public class TeamLossListener implements Listener {
 
         if (aliveTeams.size() > 1) return;
 
-        Bukkit.getPluginManager().callEvent(new TeamWonEvent(aliveTeams.getFirst(), false));
+        if (!aliveTeams.isEmpty()) Bukkit.getPluginManager().callEvent(new TeamWonEvent(aliveTeams.getFirst(), false));
     }
 
 }

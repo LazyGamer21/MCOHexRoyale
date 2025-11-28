@@ -5,10 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Horse;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Pig;
+import org.bukkit.entity.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -47,8 +44,12 @@ public class WorldManager {
      */
     public void resetGameWorld() {
         // Logic to reset the game world to its initial state
-        for (Entity entity : gameWorld.getEntities()) {
-            if (entity instanceof Pig || entity instanceof Horse || entity instanceof Item) {
+        for (Entity entity : WorldManager.getInstance().getGameWorld().getEntities()) {
+            if (entity instanceof BlockDisplay) {
+                entity.remove();
+                continue;
+            }
+            if ((entity instanceof LivingEntity && !(entity instanceof Player)) || entity instanceof Item) {
                 entity.remove();
             }
         }

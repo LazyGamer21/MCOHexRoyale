@@ -5,6 +5,7 @@ import me.ericdavis.lazySelection.LazySelection;
 import me.ericdavis.lazygui.LazyGui;
 import me.ericdavis.lazygui.test.GuiManager;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
+import net.mcoasis.mcohexroyale.commands.SetMiddleSpawnCommand;
 import net.mcoasis.mcohexroyale.commands.SetTeamCommand;
 import net.mcoasis.mcohexroyale.commands.participant.ShopCommand;
 import net.mcoasis.mcohexroyale.commands.participant.TeamChatCommand;
@@ -30,6 +31,7 @@ import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexCaptureListener;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.managers.WorldManager;
+import net.mcoasis.mcohexroyale.util.ConfigUtil;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -46,7 +48,9 @@ import org.bukkit.util.Vector;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class MCOHexRoyale extends JavaPlugin implements Listener {
@@ -64,8 +68,13 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
     private LazyScoreboard scoreboard;
 
+    private FileConfiguration spawnsConfig;
+    private File spawnsFile;
+
     private FileConfiguration flagsConfig;
     private File flagsFile;
+
+    private ConfigUtil shopConfigUtil;
 
     /* region OnEnable/OnDisable */
 
@@ -75,6 +84,8 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
         saveDefaultConfig();
         createFlagsConfig();
+        createSpawnsConfig();
+        shopConfigUtil = new ConfigUtil(this, "shop");
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new TeamPlaceholder().register();
@@ -84,13 +95,11 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         registerLibraries();
         registerGuiPages();
         registerCommandsAndListeners();
-
-        startGame();
     }
 
     @Override
     public void onDisable() {
-        GameManager.getInstance().endGame(false);
+        GameManager.getInstance().endGame(false, true);
     }
 
     public void createFlagsConfig() {
@@ -104,6 +113,17 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         flagsConfig = YamlConfiguration.loadConfiguration(flagsFile);
     }
 
+    public void createSpawnsConfig() {
+        spawnsFile = new File(getDataFolder(), "spawns.yml");
+
+        // If the file doesn't exist, save the default one from resources
+        if (!spawnsFile.exists()) {
+            saveResource("spawns.yml", false);
+        }
+
+        spawnsConfig = YamlConfiguration.loadConfiguration(spawnsFile);
+    }
+
     public void saveFlagsConfig() {
         try {
             flagsConfig.save(flagsFile);
@@ -112,8 +132,12 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         }
     }
 
-    public FileConfiguration getFlagsConfig() {
-        return flagsConfig;
+    public void saveSpawnsConfig() {
+        try {
+            spawnsConfig.save(spawnsFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /* endregion */
@@ -139,7 +163,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         for (Player p : Bukkit.getOnlinePlayers()) {
             scoreboard.removeScoreboard(p);
         }
-        stopRunnables();
+        Bukkit.getScheduler().cancelTasks(this);
     }
 
     public void restartRunnables() {
@@ -177,11 +201,6 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         }.runTaskTimer(this, 0, getConfig().getInt("warning-message-timer", 30));
 
         this.reloadConfig();
-    }
-
-    private void stopRunnables() {
-        if (gameLogicUpdater != null && !gameLogicUpdater.isCancelled()) gameLogicUpdater.cancel();
-        if (warningMessageTask != null && !warningMessageTask.isCancelled()) warningMessageTask.cancel();
     }
 
     void sendWarningMessages() {
@@ -229,6 +248,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         TeamChatCommand teamChatCommand = new TeamChatCommand();
         getCommand("teamchat").setExecutor(teamChatCommand);
         getCommand("shop").setExecutor(new ShopCommand());
+        getCommand("setmiddlespawn").setExecutor(new SetMiddleSpawnCommand());
 
         // register tab completers
         getCommand("setteam").setTabCompleter(new SetTeamTabCompleter());
@@ -245,11 +265,11 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new PlayerChatListener(teamChatCommand), this);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(new RespawnListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerDeathListener(), this);
+        getServer().getPluginManager().registerEvents(new DeathListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerChangeWorldListener(), this);
-        getServer().getPluginManager().registerEvents(new PlayerLeaveListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerCraftListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerInteractWithMapListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerMoveListener(), this);
 
         blockBreakListener.loadHarvestableBlocks(getConfig());
     }
@@ -279,7 +299,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     private void updateScoreboard() {
         if (scoreboard == null) return;
 
-        int lineLength = 18;
+        int lineLength = 30;
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             // only update scoreboard for players in the game world
@@ -293,45 +313,77 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
             scoreboard.addBlankLine(player);
 
-            scoreboard.setStat(player, "timer", ChatColor.YELLOW + "Game End: "
-                    + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(GameManager.getInstance().getGameTimerSeconds()));
+            if (!GameManager.getInstance().isSuddenDeathStarted()) {
+                scoreboard.setStat(player, "timer", ChatColor.YELLOW + "Game End: "
+                        + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(GameManager.getInstance().getGameTimerSeconds()));
 
-            if (GameManager.getInstance().getMiddleTileSeconds() <= 0) {
-                if (HexCaptureListener.middleTileTeam != null) {
-                    int timeleft = HexCaptureListener.getWinTimeLeft();
-                    scoreboard.setStat(player, "middle", ChatColor.YELLOW + "Middle Tile: "
-                            + HexCaptureListener.middleTileTeam.getTeamColor().getColor() + HexCaptureListener.middleTileTeam.getTeamColor().getName()
-                            + ChatColor.WHITE + " - " + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(timeleft));
+                if (GameManager.getInstance().getMiddleTileSeconds() <= 0) {
+                    if (HexCaptureListener.middleTileTeam != null) {
+                        int timeleft = HexCaptureListener.getWinTimeLeft();
+                        scoreboard.setStat(player, "middle", ChatColor.YELLOW + "Middle Tile: "
+                                + HexCaptureListener.middleTileTeam.getTeamColor().getColor() + HexCaptureListener.middleTileTeam.getTeamColor().getName()
+                                + ChatColor.WHITE + " - " + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(timeleft));
+                    } else {
+                        scoreboard.setStat(player, "middle", ChatColor.YELLOW + "Middle Tile: "
+                                + ChatColor.WHITE + "Capturable");
+                    }
                 } else {
                     scoreboard.setStat(player, "middle", ChatColor.YELLOW + "Middle Tile: "
-                            + ChatColor.WHITE + "Capturable");
+                            + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(GameManager.getInstance().getMiddleTileSeconds()));
                 }
             } else {
-                scoreboard.setStat(player, "middle", ChatColor.YELLOW + "Middle Tile: "
-                        + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(GameManager.getInstance().getMiddleTileSeconds()));
+                scoreboard.setStat(player, "timer", ChatColor.RED + "Sudden Death!");
             }
 
             scoreboard.addBlankLine(player);
 
             for (HexTeam team : HexManager.getInstance().getTeams()) {
-                int alive = team.getMembersAlive().isEmpty() ? 0 : (int) team.getMembersAlive().entrySet().stream().filter(Map.Entry::getValue).count();
-                int total = team.getMembersAlive().isEmpty() ? 0 : team.getMembersAlive().size();
 
-                String line = team.getTeamColor().getColor() + team.getTeamColor().getName() + " Alive: " + alive + "/" + total;
-                String line2 = team.getTeamColor().getColor() + team.getTeamColor().getName() + " Tiles: " + HexManager.getInstance().getOwnedTiles(team);
+                String line;
+                // if the team is alive, show alive count, else show eliminated
+                if (team.isTeamAlive()) {
+                    int alive = team.getMembersAlive().isEmpty() ? 0 : (int) team.getMembersAlive().entrySet().stream().filter(Map.Entry::getValue).count();
+                    int total = team.getMembersAlive().isEmpty() ? 0 : team.getMembersAlive().size();
+
+                    line = team.getTeamColor().getColor() + team.getTeamColor().getName() + " Alive: " + alive + "/" + total;
+                } else {
+                    line = team.getTeamColor().getColor() + team.getTeamColor().getName() + ": " + ChatColor.DARK_RED + "ELIMINATED";
+                }
+
+                String line2;
+                // if the team has base ownership, show owned tiles, else show base lost
+                if (team.hasBaseOwnership()) {
+                    line2 = team.getTeamColor().getColor() + team.getTeamColor().getName() + " Tiles: " + HexManager.getInstance().getOwnedTiles(team);
+                } else {
+                    line2 = team.getTeamColor().getColor() + team.getTeamColor().getName() + ": " + ChatColor.DARK_RED + "BASE LOST";
+                }
 
                 scoreboard.setStat(player, team.getTeamColor().getName(), line, lineLength, true);
-                scoreboard.setStat(player, team.getTeamColor().getName() + "2", line2, lineLength, true);
+                //only show second line if team is alive and sudden death has not started
+                if (!GameManager.getInstance().isSuddenDeathStarted()) {
+                    if (team.isTeamAlive()) scoreboard.setStat(player, team.getTeamColor().getName() + "2", line2, lineLength, true);
+                }
+
             }
 
             scoreboard.addBlankLine(player);
+
+            int coins = SellPage.coinAmounts.getOrDefault(player.getUniqueId(), 0);
+            if (coins == 0) {
+                scoreboard.setStat(player, "wallet", ChatColor.GREEN + "Wallet: " + ChatColor.WHITE + "You're Broke");
+            } else {
+                scoreboard.setStat(player, "wallet", ChatColor.GREEN + "Wallet: "
+                        + ChatColor.GOLD + SellPage.coinAmounts.get(player.getUniqueId()) + " Coins");
+            }
+
+
+            scoreboard.addBlankLine(player);
+
             scoreboard.setStat(player, "endLine", ChatColor.GOLD + "" + ChatColor.BOLD + "-+--------------+-");
 
             scoreboard.updateStats(player);
         }
     }
-
-    //! send a message to all players when any team's base tile is captured like the bed destruction message in bedwars
 
     public void saveHexFlag(HexTile tile) {
         HexFlag flag = tile.getHexFlag();
@@ -390,6 +442,67 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         }
     }
 
+    public void clearSpawns(HexTeam.TeamColor teamColor) {
+        String key = teamColor.getName().toLowerCase() + "-spawns";
+
+        spawnsConfig.set(key, new ArrayList<>()); // set empty list
+        saveSpawnsConfig();
+    }
+
+    public void saveSpawn(HexTeam.TeamColor teamColor, Location loc) {
+        String key = teamColor.getName().toLowerCase() + "-spawns";
+
+        List<String> list = spawnsConfig.getStringList(key);
+        list.add(serializeLocation(loc));
+
+        spawnsConfig.set(key, list);
+        saveSpawnsConfig();
+    }
+
+    public List<Location> loadSpawns(HexTeam.TeamColor teamColor) {
+        String key = teamColor.getName().toLowerCase() + "-spawns";
+
+        List<String> raw = spawnsConfig.getStringList(key);
+        List<Location> result = new ArrayList<>();
+
+        for (String s : raw) {
+            Location loc = deserializeLocation(s);
+            if (loc != null) result.add(loc);
+        }
+
+        return result;
+    }
+
+    private String serializeLocation(Location loc) {
+        return loc.getWorld().getName() + "," +
+                loc.getX() + "," +
+                loc.getY() + "," +
+                loc.getZ() + "," +
+                loc.getYaw() + "," +
+                loc.getPitch();
+    }
+
+    private Location deserializeLocation(String s) {
+        try {
+            String[] split = s.split(",");
+            World world = Bukkit.getWorld(split[0]);
+
+            double x = Double.parseDouble(split[1]);
+            double y = Double.parseDouble(split[2]);
+            double z = Double.parseDouble(split[3]);
+            float yaw = Float.parseFloat(split[4]);
+            float pitch = Float.parseFloat(split[5]);
+
+            return new Location(world, x, y, z, yaw, pitch);
+
+        } catch (Exception e) {
+            Bukkit.getLogger().warning("Failed to deserialize location: " + s);
+            return null;
+        }
+    }
+
+
+
     private void saveFlagData(FileConfiguration config, String path, Location top, Location bottom, Location base) {
         config.set(path + ".world", base.getWorld().getName());
         config.set(path + ".x", base.getX());
@@ -398,6 +511,8 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         config.set(path + ".bottomY", bottom.getY());
         config.set(path + ".baseY", base.getY());
     }
+
+
 
     private Map<FlagLocPos, Location> loadFlagData(FileConfiguration config, String path) {
         if (!config.isConfigurationSection(path)) return null;
@@ -459,16 +574,17 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         }
     }
 
-    public void resetPlayer(Player player) {
+    public void resetPlayer(Player player, boolean pluginDisable) {
         // weird sequence to prevent flying, still don't really know if it works
         player.setAllowFlight(false);
         player.setFlying(false);
-        Bukkit.getScheduler().runTaskLater(this, () -> player.setGameMode(GameMode.SURVIVAL), 1L);
+        player.setGameMode(GameMode.ADVENTURE);
+        if (!pluginDisable) Bukkit.getScheduler().runTaskLater(this, () -> player.setGameMode(GameMode.SURVIVAL), 1L);
+        else player.setGameMode(GameMode.SURVIVAL);
 
         // reset all player things that may change like potions effects, survival mode, etc
         player.getInventory().clear();
         player.getEnderChest().clear();
-        player.setGameMode(GameMode.SURVIVAL);
         player.setHealth(20.0);
         player.setFoodLevel(20);
         player.setSaturation(20f);
@@ -482,6 +598,16 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
             player.removePotionEffect(effect.getType());
         }
 
-        scoreboard.removeScoreboard(player);
+        if (scoreboard != null) scoreboard.removeScoreboard(player);
+    }
+
+    //* Config Getters
+
+    /***
+     *
+     * @return The {@link FileConfiguration} that holds shop information
+     */
+    public FileConfiguration getShopConfig() {
+        return this.shopConfigUtil.getConfig();
     }
 }

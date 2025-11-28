@@ -53,7 +53,7 @@ public class GameControlsPage extends AbstractGuiPage {
 
         assignItem(playerId, 24, new GuiItem(Material.RED_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GREEN + "Stopping the Game...");
-            GameManager.getInstance().endGame(true);
+            GameManager.getInstance().endGame(true, false);
         }).setName(ChatColor.RED + "Stop"));
 
         assignItem(playerId, 40, new GuiItem(Material.BEDROCK, e -> {

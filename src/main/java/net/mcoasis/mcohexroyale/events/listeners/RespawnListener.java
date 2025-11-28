@@ -4,6 +4,8 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
+import net.mcoasis.mcohexroyale.managers.GameManager;
+import net.mcoasis.mcohexroyale.managers.WorldManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -21,7 +23,13 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 public class RespawnListener implements Listener {
+
+    public static Set<UUID> playerRespawning = new java.util.HashSet<>();
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent e) {
@@ -36,23 +44,33 @@ public class RespawnListener implements Listener {
     public static void stuff(Player p) {
         HexTeam team = HexManager.getInstance().getPlayerTeam(p);
 
-        if (team == null) return;
+        if (team == null || GameManager.getInstance().getGameState() == GameManager.GameState.LOBBY) {
+            if (GameManager.getInstance().getGameState() == GameManager.GameState.LOBBY) {
+                p.teleport(WorldManager.getInstance().getLobbyWorld().getSpawnLocation());
+                return;
+            }
+            return;
+        }
 
         p.getInventory().clear();
-        p.setGameMode(GameMode.SPECTATOR);
+        Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> p.setGameMode(GameMode.SPECTATOR), 1L);
+        Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> team.getBaseTile().teleportToBase(p, true), 1L);
         team.getMembersAlive().put(p, false);
 
         if (team.hasBaseOwnership()) {
             int respawnTimer = MCOHexRoyale.getInstance().getConfig().getInt("respawn-timer", 3);
 
+            playerRespawning.add(p.getUniqueId());
+
             p.sendMessage(ChatColor.GRAY + "Respawning in " + respawnTimer + " seconds!");
             Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> {
+                if (!playerRespawning.contains(p.getUniqueId())) return;
                 if (!team.isTeamAlive()) return;
-
-                team.getBaseTile().teleportToBase(p);
                 p.setGameMode(GameMode.SURVIVAL);
+                team.getBaseTile().teleportToBase(p, true);
                 setKit(p);
                 team.getMembersAlive().put(p, true);
+                playerRespawning.remove(p.getUniqueId());
             }, 20L * respawnTimer);
 
             return;
@@ -113,7 +131,7 @@ public class RespawnListener implements Listener {
     private static void giveKit1(Player p) {
         PlayerInventory inv = p.getInventory();
 
-        inv.clear();
+        clearArmorAndTools(p);
 
         // set armor
         inv.setHelmet(new ItemStack(Material.LEATHER_HELMET));
@@ -133,7 +151,7 @@ public class RespawnListener implements Listener {
     private static void giveKit2(Player p) {
         PlayerInventory inv = p.getInventory();
 
-        inv.clear();
+        clearArmorAndTools(p);
 
         // set armor
         inv.setHelmet(new ItemStack(Material.CHAINMAIL_HELMET));
@@ -153,7 +171,7 @@ public class RespawnListener implements Listener {
     private static void giveKit3(Player p) {
         PlayerInventory inv = p.getInventory();
 
-        inv.clear();
+        clearArmorAndTools(p);
 
         // set armor
         inv.setHelmet(new ItemStack(Material.CHAINMAIL_HELMET));
@@ -218,5 +236,42 @@ public class RespawnListener implements Listener {
 
         inv.setArmorContents(armor);
     }
+
+    public static void clearArmorAndTools(Player p) {
+        PlayerInventory inv = p.getInventory();
+
+        // clear armor pieces if they are kit items
+        if (inv.getHelmet() != null && KIT_ITEMS.contains(inv.getHelmet().getType()))
+            inv.setHelmet(null);
+        if (inv.getChestplate() != null && KIT_ITEMS.contains(inv.getChestplate().getType()))
+            inv.setChestplate(null);
+        if (inv.getLeggings() != null && KIT_ITEMS.contains(inv.getLeggings().getType()))
+            inv.setLeggings(null);
+        if (inv.getBoots() != null && KIT_ITEMS.contains(inv.getBoots().getType()))
+            inv.setBoots(null);
+
+        // clear inventory items that match kit items
+        for (int i = 0; i < inv.getSize(); i++) {
+            ItemStack item = inv.getItem(i);
+            if (item != null && KIT_ITEMS.contains(item.getType())) {
+                inv.setItem(i, null);
+            }
+        }
+    }
+
+    private static final Set<Material> KIT_ITEMS = Set.of(
+            // armor
+            Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS,
+            Material.CHAINMAIL_HELMET, Material.CHAINMAIL_CHESTPLATE, Material.CHAINMAIL_LEGGINGS, Material.CHAINMAIL_BOOTS,
+            Material.IRON_LEGGINGS, Material.IRON_BOOTS,
+
+            // tools / weapons
+            Material.WOODEN_AXE, Material.WOODEN_SWORD, Material.STONE_PICKAXE,
+            Material.STONE_AXE, Material.STONE_SWORD,
+
+            // food
+            Material.BREAD
+    );
+
 
 }

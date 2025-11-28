@@ -71,8 +71,14 @@ public class HexManager {
 
     private HashMap<UUID, HexTile> settingTileFlag = new HashMap<>();
 
+    private HashMap<UUID, TeamColor> settingTeamSpawns = new HashMap<>();
+
     public HashMap<UUID, HexTile> getPlayerSettingFlag() {
         return settingTileFlag;
+    }
+
+    public HashMap<UUID, TeamColor> getSettingTeamSpawns() {
+        return settingTeamSpawns;
     }
 
     /**
@@ -80,6 +86,8 @@ public class HexManager {
      * giving the 4 corners their respective {@link HexTeam}s
      */
     public void populateGrid() {
+        HexManager.getInstance().getHexGrid().clear();
+
         getTeam(TeamColor.YELLOW).setBaseLocation(new HexTile(3, -2, getTeam(TeamColor.YELLOW))); // YELLOW Team
 
         new HexTile(2, 0, null);

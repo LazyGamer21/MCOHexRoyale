@@ -10,7 +10,6 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,16 +34,17 @@ public class ShopPage extends AbstractGuiPage {
 
     @Override
     protected void assignItems(UUID uuid) {
-        assignItem(uuid, 21, new GuiItem(Material.STONE, e -> {
+        assignItem(uuid, 23, new GuiItem(Material.SHIELD, e -> {
             Player player = (Player) e.getWhoClicked();
             GuiManager.getInstance().openPage(BuyPage.pageId, player);
         }).setName(ChatColor.GOLD + "Buy")
                 .setLore("Purchased Items are Lost on Death!"));
 
-        assignItem(uuid, 23, new GuiItem(Material.STONE, e -> {
+        assignItem(uuid, 21, new GuiItem(Material.MINECART, e -> {
             Player player = (Player) e.getWhoClicked();
             GuiManager.getInstance().openPage(SellPage.pageId, player);
-        }).setName(ChatColor.GOLD + "Sell"));
+        }).setName(ChatColor.GOLD + "Sell")
+                .setLore("Get those juicy Coins!"));
 
         // wallet viewer
         int coins = SellPage.coinAmounts.getOrDefault(uuid, 0);

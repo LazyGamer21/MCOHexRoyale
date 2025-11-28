@@ -60,3 +60,6 @@ harvestable-blocks:
   IRON_ORE: 15
   GOLD_ORE: 30
   DIAMOND_ORE: 60
+
+# used for sudden death
+middle-tile-spawn:
