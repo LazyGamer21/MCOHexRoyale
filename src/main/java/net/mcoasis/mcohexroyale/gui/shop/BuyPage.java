@@ -3,18 +3,20 @@ package net.mcoasis.mcohexroyale.gui.shop;
 import me.ericdavis.lazygui.item.GuiItem;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import me.ericdavis.lazygui.test.GuiManager;
+import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.ShopPage;
+import net.mcoasis.mcohexroyale.util.ConfigUtil;
 import net.mcoasis.mcohexroyale.util.ShopItem;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,11 +51,7 @@ public class BuyPage extends AbstractGuiPage {
 
                         Player p = (Player) e.getWhoClicked();
 
-                        /*if (p.hasPermission("hexroyale.admin")) {
-                            if (e.getAction().)
-                        }*/
-
-                        // Build full list of items to give
+                        // Build the full list of items to give
                         List<ItemStack> toGive = new ArrayList<>();
                         toGive.add(shopItem.getItemStack().clone()); // main item
                         shopItem.getExtraItems().forEach(i -> toGive.add(i.clone()));
@@ -100,17 +98,34 @@ public class BuyPage extends AbstractGuiPage {
     }
 
     private List<ShopItem> getShopItems() {
-        return List.of(
-                new ShopItem(new ItemStack(Material.IRON_SHOVEL), 150, 11),
-                new ShopItem(new ItemStack(Material.IRON_PICKAXE), 250, 20),
-                new ShopItem(new ItemStack(Material.IRON_AXE), 500, 29),
 
-                new ShopItem(new ItemStack(Material.COOKED_BEEF, 8), 100, 12),
-                new ShopItem(new ItemStack(Material.MUSHROOM_STEW), 250, 21),
-                new ShopItem(new ItemStack(Material.GOLDEN_APPLE), 350, 30),
+        ConfigUtil shopConfigUtil = MCOHexRoyale.getInstance().getShopConfigUtil();
+        shopConfigUtil.reload();
+
+        FileConfiguration shopConfig = shopConfigUtil.getConfig();
+
+        return List.of(
+                new ShopItem(new ItemStack(Material.IRON_SHOVEL),
+                        shopConfig.getInt("buy.IRON_SHOVEL", 150), 11),
+
+                new ShopItem(new ItemStack(Material.IRON_PICKAXE),
+                        shopConfig.getInt("buy.IRON_PICKAXE", 250), 20),
+
+                new ShopItem(new ItemStack(Material.IRON_AXE),
+                        shopConfig.getInt("buy.IRON_AXE", 500), 29),
+
+                new ShopItem(new ItemStack(Material.COOKED_BEEF, 8),
+                        shopConfig.getInt("buy.COOKED_BEEF", 100), 12),
+
+                new ShopItem(new ItemStack(Material.MUSHROOM_STEW),
+                        shopConfig.getInt("buy.MUSHROOM_STEW", 250), 21),
+
+                new ShopItem(new ItemStack(Material.GOLDEN_APPLE),
+                        shopConfig.getInt("buy.GOLDEN_APPLE", 350), 30),
 
                 // --- PIG BUNDLE ---
-                new ShopItem(new ItemStack(Material.CARROT_ON_A_STICK), 250, 13) {{
+                new ShopItem(new ItemStack(Material.CARROT_ON_A_STICK),
+                        shopConfig.getInt("buy.CARROT_ON_A_STICK", 250), 13) {{
                     addExtraItems(
                             new ItemStack(Material.SADDLE),
                             new ItemStack(Material.PIG_SPAWN_EGG)
@@ -118,199 +133,31 @@ public class BuyPage extends AbstractGuiPage {
                 }},
 
                 // --- HORSE BUNDLE ---
-                new ShopItem(new ItemStack(Material.SADDLE), 350, 22) {{
+                new ShopItem(new ItemStack(Material.SADDLE),
+                        shopConfig.getInt("buy.SADDLE", 350), 22) {{
                     addExtraItems(
                             new ItemStack(Material.HORSE_SPAWN_EGG)
                     );
                 }},
 
-                new ShopItem(new ItemStack(Material.BOW), 500, 14),
-                new ShopItem(new ItemStack(Material.ARROW, 8), 250, 23),
-                new ShopItem(new ItemStack(Material.SHIELD), 750, 32),
+                new ShopItem(new ItemStack(Material.BOW),
+                        shopConfig.getInt("buy.BOW", 500), 14),
 
-                new ShopItem(new ItemStack(Material.IRON_SWORD), 250, 15),
-                new ShopItem(new ItemStack(Material.DIAMOND_SWORD), 1000, 24),
-                new ShopItem(new ItemStack(Material.BLAST_FURNACE), 15, 33)
+                new ShopItem(new ItemStack(Material.ARROW, 8),
+                        shopConfig.getInt("buy.ARROW", 250), 23),
+
+                new ShopItem(new ItemStack(Material.SHIELD),
+                        shopConfig.getInt("buy.SHIELD", 750), 32),
+
+                new ShopItem(new ItemStack(Material.IRON_SWORD),
+                        shopConfig.getInt("buy.IRON_SWORD", 250), 15),
+
+                new ShopItem(new ItemStack(Material.DIAMOND_SWORD),
+                        shopConfig.getInt("buy.DIAMOND_SWORD", 1000), 24),
+
+                new ShopItem(new ItemStack(Material.BLAST_FURNACE),
+                        shopConfig.getInt("buy.BLAST_FURNACE", 15), 33)
         );
-    }
-
-    private void column1(UUID uuid) {
-        int shovelCost = 150;
-        assignItem(uuid, 11, new GuiItem(Material.IRON_SHOVEL, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.IRON_SHOVEL, 1);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, shovelCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Iron Shovel for " + shovelCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Iron Shovel")
-                .setLore("Cost: " + shovelCost));
-
-        int pickaxeCost = 250;
-        assignItem(uuid, 20, new GuiItem(Material.IRON_PICKAXE, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.IRON_PICKAXE, 1);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, pickaxeCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Iron Pickaxe for " + pickaxeCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Iron Pickaxe")
-                .setLore("Cost: " + pickaxeCost));
-
-        int axeCost = 500;
-        assignItem(uuid, 29, new GuiItem(Material.IRON_AXE, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.IRON_AXE, 1);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, axeCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Iron Axe for " + axeCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Iron Axe")
-                .setLore("Cost: " + axeCost));
-    }
-
-    private void column2(UUID uuid) {
-        int steakCost = 100;
-        assignItem(uuid, 12, new GuiItem(new ItemStack(Material.COOKED_BEEF, 8), e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.COOKED_BEEF, 8);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, steakCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased 8 Cooked Beef for " + steakCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy 8 Cooked Beef")
-                .setLore("Cost: " + steakCost));
-
-        int mushroomStewCost = 250;
-        assignItem(uuid, 21, new GuiItem(Material.MUSHROOM_STEW, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.MUSHROOM_STEW);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, mushroomStewCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Mushroom Stew for " + mushroomStewCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Mushroom Stew")
-                .setLore("Cost: " + mushroomStewCost));
-
-        int goldenAppleCost = 350;
-        assignItem(uuid, 30, new GuiItem(Material.GOLDEN_APPLE, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.GOLDEN_APPLE);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, goldenAppleCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Golden Apple for " + goldenAppleCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Golden Apple")
-                .setLore("Cost: " + goldenAppleCost));
-    }
-
-    private void column3(UUID uuid) {
-        int pigCost = 250;
-        assignItem(uuid, 13, new GuiItem(Material.CARROT_ON_A_STICK, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack[] purchasedItems = {
-                    new ItemStack(Material.CARROT_ON_A_STICK),
-                    new ItemStack(Material.SADDLE),
-                    new ItemStack(Material.PIG_SPAWN_EGG)
-            };
-            // Clone items for inventory check
-            ItemStack[] clones = Arrays.stream(purchasedItems)
-                    .map(ItemStack::clone)
-                    .toArray(ItemStack[]::new);
-            if (!hasRoomFor(p, clones)) return;
-            if (!buyItem(p, pigCost)) return;
-            p.getInventory().addItem(purchasedItems);
-            p.sendMessage(ChatColor.GREEN + "Purchased Pig for " + pigCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Pig + Saddle + Carrot on a Stick")
-                .setLore("Cost: " + pigCost));
-
-        int horseCost = 350;
-        assignItem(uuid, 22, new GuiItem(Material.SADDLE, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack[] purchasedItems = {
-                    new ItemStack(Material.HORSE_SPAWN_EGG),
-                    new ItemStack(Material.SADDLE)
-            };
-            // Clone items for inventory check
-            ItemStack[] clones = Arrays.stream(purchasedItems)
-                    .map(ItemStack::clone)
-                    .toArray(ItemStack[]::new);
-            if (!hasRoomFor(p, clones)) return;
-            if (!buyItem(p, horseCost)) return;
-            p.getInventory().addItem(purchasedItems);
-            p.sendMessage(ChatColor.GREEN + "Purchased Horse for " + horseCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Horse + Saddle")
-                .setLore("Cost: " + horseCost));
-    }
-
-    private void column4(UUID uuid) {
-        int bowCost = 500;
-        assignItem(uuid, 14, new GuiItem(Material.BOW, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.BOW);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, bowCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Bow for " + bowCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Bow")
-                .setLore("Cost: " + bowCost, "Arrows not included!"));
-
-        int arrowsCost = 250;
-        assignItem(uuid, 23, new GuiItem(new ItemStack(Material.ARROW, 8), e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.ARROW, 8);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, arrowsCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased 8 Arrows for " + arrowsCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy 8 Arrows")
-                .setLore("Cost: " + arrowsCost));
-
-        int shieldCost = 750;
-        assignItem(uuid, 32, new GuiItem(Material.SHIELD, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.SHIELD);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, shieldCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Shield for " + shieldCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Shield")
-                .setLore("Cost: " + shieldCost));
-    }
-
-    private void column5(UUID uuid) {
-        int ironSwordCost = 250;
-        assignItem(uuid, 15, new GuiItem(Material.IRON_SWORD, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.IRON_SWORD);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, ironSwordCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Iron Sword for " + ironSwordCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Iron Sword")
-                .setLore("Cost: " + ironSwordCost));
-
-        int diamondSwordCost = 1000;
-        assignItem(uuid, 24, new GuiItem(Material.DIAMOND_SWORD, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.DIAMOND_SWORD);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, diamondSwordCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Diamond Sword for " + diamondSwordCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Diamond Sword")
-                .setLore("Cost: " + diamondSwordCost));
-
-        int furnaceCost = 15;
-        assignItem(uuid, 33, new GuiItem(Material.BLAST_FURNACE, e -> {
-            Player p = (Player) e.getWhoClicked();
-            ItemStack purchasedItem = new ItemStack(Material.BLAST_FURNACE);
-            if (!hasRoomFor(p, purchasedItem.clone())) return;
-            if (!buyItem(p, furnaceCost)) return;
-            p.getInventory().addItem(purchasedItem);
-            p.sendMessage(ChatColor.GREEN + "Purchased Blast Furnace for " + furnaceCost + " coins!");
-        }).setName(ChatColor.GOLD + "Buy Blast Furnace")
-                .setLore("Cost: " + furnaceCost));
     }
 
     private boolean buyItem(Player p, int cost) {

@@ -1,8 +1,15 @@
 buy:
-  column-1:
-    shovelCost: 150
-    pickaxeCost: 250
-  column-2:
-  column-3:
-  column-4:
-  column-5:
+  IRON_SHOVEL: 150
+  IRON_PICKAXE: 250
+  IRON_AXE: 500
+  COOKED_BEEF: 100
+  MUSHROOM_STEW: 250
+  GOLDEN_APPLE: 350
+  CARROT_ON_A_STICK: 250
+  SADDLE: 350
+  BOW: 500
+  ARROW: 250
+  SHIELD: 750
+  IRON_SWORD: 250
+  DIAMOND_SWORD: 1000
+  BLAST_FURNACE: 15

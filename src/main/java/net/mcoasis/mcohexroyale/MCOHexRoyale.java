@@ -607,7 +607,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
      *
      * @return The {@link FileConfiguration} that holds shop information
      */
-    public FileConfiguration getShopConfig() {
-        return this.shopConfigUtil.getConfig();
+    public ConfigUtil getShopConfigUtil() {
+        return this.shopConfigUtil;
     }
 }
