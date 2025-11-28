@@ -3,11 +3,14 @@ package net.mcoasis.mcohexroyale.gui.shop;
 import me.ericdavis.lazygui.item.GuiItem;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import me.ericdavis.lazygui.test.GuiManager;
+import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.ShopPage;
+import net.mcoasis.mcohexroyale.util.ConfigUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -40,11 +43,16 @@ public class SellPage extends AbstractGuiPage {
 
     @Override
     protected void assignItems(UUID uuid) {
-        setCobblestoneButtons(uuid);
-        setCoalButtons(uuid);
-        setIronButtons(uuid);
-        setGoldButtons(uuid);
-        setDiamondButtons(uuid);
+        ConfigUtil shopConfigUtil = MCOHexRoyale.getInstance().getShopConfigUtil();
+        shopConfigUtil.reload();
+
+        FileConfiguration shopConfig = shopConfigUtil.getConfig();
+
+        setCobblestoneButtons(uuid, shopConfig.getInt("sell.Cobblestone", 1));
+        setCoalButtons(uuid, shopConfig.getInt("sell.Coal", 3));
+        setIronButtons(uuid, shopConfig.getInt("sell.Iron", 50));
+        setGoldButtons(uuid, shopConfig.getInt("sell.Gold", 100));
+        setDiamondButtons(uuid, shopConfig.getInt("sell.Diamond", 200));
 
         // wallet viewer
         int coins = SellPage.coinAmounts.getOrDefault(uuid, 0);
@@ -123,49 +131,45 @@ public class SellPage extends AbstractGuiPage {
         return true;
     }
 
-    private void setCobblestoneButtons(UUID uuid) {
+    private void setCobblestoneButtons(UUID uuid, int cost) {
         Material material = Material.COBBLESTONE;
-        int sellCost = 1;
         String itemName = "Cobblestone";
         int startingSlot = 11;
 
-        setButtons(uuid, material, sellCost, itemName, startingSlot);
+        setButtons(uuid, material, cost, itemName, startingSlot);
     }
 
-    private void setCoalButtons(UUID uuid) {
+    private void setCoalButtons(UUID uuid, int cost) {
         Material material = Material.COAL;
         int sellCost = 3;
         String itemName = "Coal";
         int startingSlot = 12;
 
-        setButtons(uuid, material, sellCost, itemName, startingSlot);
+        setButtons(uuid, material, cost, itemName, startingSlot);
     }
 
-    private void setIronButtons(UUID uuid) {
+    private void setIronButtons(UUID uuid, int cost) {
         Material material = Material.IRON_INGOT;
-        int sellCost = 50;
         String itemName = "Iron";
         int startingSlot = 13;
 
-        setButtons(uuid, material, sellCost, itemName, startingSlot);
+        setButtons(uuid, material, cost, itemName, startingSlot);
     }
 
-    private void setGoldButtons(UUID uuid) {
+    private void setGoldButtons(UUID uuid, int cost) {
         Material material = Material.GOLD_INGOT;
-        int sellCost = 100;
         String itemName = "Gold";
         int startingSlot = 14;
 
-        setButtons(uuid, material, sellCost, itemName, startingSlot);
+        setButtons(uuid, material, cost, itemName, startingSlot);
     }
 
-    private void setDiamondButtons(UUID uuid) {
+    private void setDiamondButtons(UUID uuid, int cost) {
         Material material = Material.DIAMOND;
-        int sellCost = 200;
         String itemName = "Diamond";
         int startingSlot = 15;
 
-        setButtons(uuid, material, sellCost, itemName, startingSlot);
+        setButtons(uuid, material, cost, itemName, startingSlot);
     }
 
     private void setButtons(UUID uuid, Material material, int sellCost, String itemName, int startingSlot) {

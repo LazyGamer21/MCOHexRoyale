@@ -227,6 +227,16 @@ public class GameManager {
             p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1.0f, 1.0f);
             suddenDeathStarted = true;
         }
+
+        // idk if we wanna do this
+        /*List<Player> playersToTeleport = new ArrayList<>();
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            playersToTeleport.add(p);
+            p.setHealth(20.0);
+            p.setSaturation(20.0f);
+            p.setFoodLevel(20);
+        }
+        teleportPlayers(WorldManager.getInstance().getGameWorld(), playersToTeleport, false, true);*/
     }
 
     public void startSuddenDeathTimer() {

@@ -13,3 +13,10 @@ buy:
   IRON_SWORD: 250
   DIAMOND_SWORD: 1000
   BLAST_FURNACE: 15
+
+sell:
+  Cobblestone: 1
+  Coal: 3
+  Iron: 50
+  Gold: 100
+  Diamond: 200
