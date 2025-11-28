@@ -47,7 +47,7 @@ public class BuyPage extends AbstractGuiPage {
             String name = formatMaterialName(shopItem.getItemStack().getType());
 
             assignItem(uuid, shopItem.getSlot(),
-                    new GuiItem(shopItem.getItemStack(), e -> {
+                    new GuiItem(shopItem.getItemStack().clone(), e -> {
 
                         Player p = (Player) e.getWhoClicked();
 
