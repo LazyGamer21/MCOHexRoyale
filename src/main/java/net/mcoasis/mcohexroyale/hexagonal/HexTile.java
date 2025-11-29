@@ -182,15 +182,6 @@ public class HexTile {
                 }
             }
 
-            //send action bar to show team numbers
-            for (Player capturer : capturingPlayers.keySet()) {
-                if (secondTeam == null) {
-                    capturer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(topTeam.getColor() + topTeam.getName() + ": " + max + ChatColor.RESET + ChatColor.GRAY + ChatColor.BOLD + " | " + ChatColor.RESET + ChatColor.GRAY + "0"));
-                    continue;
-                }
-                capturer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(topTeam.getColor() + topTeam.getName() + ": " + max + ChatColor.RESET + ChatColor.GRAY + ChatColor.BOLD + " | " + ChatColor.RESET + secondTeam.getColor() + secondTeam.getName() + ": " + secondMax));
-            }
-
             capturingTeam = null;
 
             if (topTeam != null) {
@@ -213,6 +204,24 @@ public class HexTile {
             double captureUpdateTimer = MCOHexRoyale.getInstance().getConfig().getInt("capture-update-timer");
             double percentageChange = calculateChange(capturingPlayersAmount) * captureMultiplier;
             percentageChange *= (captureUpdateTimer/20); // normalize capture change to account for different timer (20 is the default timer)
+
+            // send action bar to show capturers
+            double capture = getCapturePercentage() >= 100 ? 100.0 : Math.min(100.0, getCapturePercentage() + percentageChange);
+            String capturePercentageString = currentTeam == null
+                    ? String.format("%.1f", capture) // one decimal place
+                    : currentTeam.getTeamColor().getColor() + String.format("%.1f", capture);
+            String team1 = topTeam.getColor() + topTeam.getName() + ": " + max;
+            String pipe = "" + ChatColor.GRAY + ChatColor.BOLD + " | ";
+            String team2 = secondTeam == null ? ChatColor.GRAY + "0" : secondTeam.getColor() + secondTeam.getName() + ": " + secondMax;
+
+
+            for (Player capturer : capturingPlayers.keySet()) {
+                capturer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(team1 +
+                        ChatColor.RESET + pipe
+                        + ChatColor.RESET + team2
+                        + ChatColor.RESET + pipe
+                        + ChatColor.RESET + capturePercentageString));
+            }
 
             // Handle percentage updates
             if (capturingTeam == null) return;

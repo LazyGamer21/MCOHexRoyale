@@ -284,8 +284,8 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
     private void saveFlagData(FileConfiguration config, String path, Location top, Location bottom, Location base) {
         config.set(path + ".world", base.getWorld().getName());
-        config.set(path + ".x", base.getX());
-        config.set(path + ".z", base.getZ());
+        config.set(path + ".x", top.getX());
+        config.set(path + ".z", top.getZ());
         config.set(path + ".topY", top.getY());
         config.set(path + ".bottomY", bottom.getY());
         config.set(path + ".baseY", base.getY());
