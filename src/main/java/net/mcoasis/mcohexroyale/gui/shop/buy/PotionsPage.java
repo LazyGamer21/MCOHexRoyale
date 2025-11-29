@@ -69,7 +69,7 @@ public class PotionsPage extends AbstractGuiPage {
                         }
 
                         p.sendMessage(ChatColor.GREEN +
-                                "Purchased " + shopItem.getItemStack().getType() +
+                                "Purchased " + formatMaterialName(shopItem.getItemStack().getType()) +
                                 " for " + shopItem.getCost() + " coins!");
                     })
                             .setName(ChatColor.GOLD + "Buy " + name)
