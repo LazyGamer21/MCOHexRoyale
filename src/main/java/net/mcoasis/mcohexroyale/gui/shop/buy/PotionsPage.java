@@ -15,7 +15,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,18 +55,13 @@ public class PotionsPage extends AbstractGuiPage {
 
                         Player p = (Player) e.getWhoClicked();
 
-                        // Build the full list of items to give
                         List<ItemStack> toGive = new ArrayList<>();
                         toGive.add(shopItem.getItemStack().clone()); // main item
                         shopItem.getExtraItems().forEach(i -> toGive.add(i.clone()));
 
-                        // Inventory space check
                         if (!hasRoomFor(p, toGive.toArray(new ItemStack[0]))) return;
-
-                        // Money check
                         if (!buyItem(p, shopItem.getCost())) return;
 
-                        // Give everything
                         for (ItemStack item : toGive) {
                             p.getInventory().addItem(item);
                         }
@@ -77,7 +75,6 @@ public class PotionsPage extends AbstractGuiPage {
             );
         }
 
-        // wallet viewer
         int coins = SellPage.coinAmounts.getOrDefault(uuid, 0);
         String endWord = coins > 1 || coins == 0 ? " Coins" : " Coin";
         assignItem(uuid, 18, new GuiItem(Material.KELP, e -> {
@@ -99,15 +96,54 @@ public class PotionsPage extends AbstractGuiPage {
     }
 
     private List<ShopItem> getShopItems() {
-
         ConfigUtil shopConfigUtil = MCOHexRoyale.getInstance().getShopConfigUtil();
         shopConfigUtil.reload();
-
         FileConfiguration shopConfig = shopConfigUtil.getConfig();
 
-        return List.of(
+        List<ShopItem> items = new ArrayList<>();
 
-        );
+        // Strength I-III
+        for (int level = 1; level <= 3; level++) {
+            ItemStack potion = createPotion(PotionEffectType.STRENGTH, level);
+            items.add(new ShopItem(potion,
+                    shopConfig.getInt("buy.potions.strength." + level, 100000 * level),
+                    11 + ((level-1) * 9)));
+        }
+
+        // Speed I-III
+        for (int level = 1; level <= 3; level++) {
+            ItemStack potion = createPotion(PotionEffectType.SPEED, level);
+            items.add(new ShopItem(potion,
+                    shopConfig.getInt("buy.potions.speed." + level, 75000 * level),
+                    12 + ((level-1) * 9)));
+        }
+
+        // Regeneration I-II
+        for (int level = 1; level <= 2; level++) {
+            ItemStack potion = createPotion(PotionEffectType.REGENERATION, level);
+            items.add(new ShopItem(potion,
+                    shopConfig.getInt("buy.potions.regeneration." + level, 200000 * level),
+                    14 + ((level-1) * 9)));
+        }
+
+        // Jump Boost I-II
+        for (int level = 1; level <= 2; level++) {
+            ItemStack potion = createPotion(PotionEffectType.JUMP_BOOST, level);
+            items.add(new ShopItem(potion,
+                    shopConfig.getInt("buy.potions.jump." + level, 50000 * level),
+                    15 + ((level-1) * 9)));
+        }
+
+        return items;
+    }
+
+    private ItemStack createPotion(PotionEffectType type, int level) {
+        ItemStack potion = new ItemStack(Material.SPLASH_POTION, 1); // splash by default
+        PotionMeta meta = (PotionMeta) potion.getItemMeta();
+        meta.setDisplayName(ChatColor.AQUA + type.getName() + " " + level);
+        meta.addCustomEffect(new PotionEffect(type, 20 * 60 * 3, level - 1), true); // 3 minutes
+        potion.setItemMeta(meta);
+        return potion;
     }
 
     private boolean buyItem(Player p, int cost) {
@@ -125,37 +161,28 @@ public class PotionsPage extends AbstractGuiPage {
 
     public boolean hasRoomFor(Player p, ItemStack... items) {
         PlayerInventory inv = p.getInventory();
+        int[] tempSlots = new int[36];
 
-        // Create a temporary map of slots to amounts so we don't modify the real inventory
-        int[] tempSlots = new int[36]; // slots 0-35 are main inventory + hotbar
-
-        // Initialize with current amounts
         for (int slot = 0; slot <= 35; slot++) {
             ItemStack current = inv.getItem(slot);
             tempSlots[slot] = (current != null && current.getType() != Material.AIR) ? current.getAmount() : 0;
         }
 
-        // Try to add each item
         for (ItemStack toAdd : items) {
             if (toAdd == null || toAdd.getType() == Material.AIR) continue;
-
             int remaining = toAdd.getAmount();
 
-            // First try to fill existing stacks of same type
             for (int slot = 0; slot <= 35; slot++) {
                 ItemStack current = inv.getItem(slot);
-
                 if (current != null && current.isSimilar(toAdd)) {
                     int space = current.getMaxStackSize() - tempSlots[slot];
                     int added = Math.min(space, remaining);
                     remaining -= added;
                     tempSlots[slot] += added;
-
                     if (remaining <= 0) break;
                 }
             }
 
-            // Then try empty slots
             if (remaining > 0) {
                 for (int slot = 0; slot <= 35; slot++) {
                     ItemStack current = inv.getItem(slot);
@@ -164,20 +191,18 @@ public class PotionsPage extends AbstractGuiPage {
                         int added = Math.min(maxStack, remaining);
                         remaining -= added;
                         tempSlots[slot] += added;
-
                         if (remaining <= 0) break;
                     }
                 }
             }
 
-            // If there’s still remaining, player can't hold all items
             if (remaining > 0) {
                 p.sendMessage(ChatColor.RED + "Not enough inventory space!");
                 return false;
             }
         }
 
-        return true; // All items fit
+        return true;
     }
 
     @Override

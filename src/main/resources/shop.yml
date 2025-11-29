@@ -18,6 +18,20 @@ buy:
     golden-apple: 500
   perks:
   potions:
+    strength:
+      1: 500
+      2: 1000
+      3: 1500
+    speed:
+      1: 250
+      2: 500
+      3: 750
+    regeneration:
+      1: 750
+      2: 1250
+    jump:
+      1: 250
+      2: 500
   other:
     furnace: 5
     porta-potty: 500

@@ -7,6 +7,7 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.ShopPage;
 import net.mcoasis.mcohexroyale.gui.shop.buy.FoodPage;
 import net.mcoasis.mcohexroyale.gui.shop.buy.OtherPage;
+import net.mcoasis.mcohexroyale.gui.shop.buy.PotionsPage;
 import net.mcoasis.mcohexroyale.gui.shop.buy.WeaponsPage;
 import net.mcoasis.mcohexroyale.util.ConfigUtil;
 import net.mcoasis.mcohexroyale.util.ShopItem;
@@ -51,6 +52,9 @@ public class BuyPage extends AbstractGuiPage {
 
         // Other
         setShopButton(uuid, OtherPage.pageId, 22, Material.BLAST_FURNACE, "Other");
+
+        // Other
+        setShopButton(uuid, PotionsPage.pageId, 23, Material.SPLASH_POTION, "Potions");
 
         // wallet viewer
         int coins = SellPage.coinAmounts.getOrDefault(uuid, 0);
