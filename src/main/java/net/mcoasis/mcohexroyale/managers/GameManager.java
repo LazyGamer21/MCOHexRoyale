@@ -1,5 +1,6 @@
 package net.mcoasis.mcohexroyale.managers;
 
+import me.ericdavis.lazyScoreboard.LazyScoreboard;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.events.HexLossEvent;
 import net.mcoasis.mcohexroyale.events.listeners.EntityDamageEntityListener;
@@ -57,6 +58,8 @@ public class GameManager {
     private boolean suddenDeathStarted = false;
 
     public void startGame() {
+        MCOHexRoyale.getInstance().getFlagsConfigUtil().reload();
+
         WorldManager.getInstance().resetGameWorld();
 
         HexManager.getInstance().populateGrid();
@@ -97,9 +100,11 @@ public class GameManager {
             if (time[0] <= 0) {
                 // Countdown finished
 
-                MCOHexRoyale.getInstance().startGame();
+                HexManager.getInstance().populateGrid();
+                RunnablesManager.getInstance().setScoreboard(new LazyScoreboard(ChatColor.GOLD + "" + ChatColor.BOLD + "-+- Hex Royale -+-"));
+                HexManager.getInstance().loadHexFlags();
 
-                MCOHexRoyale.getInstance().restartRunnables();
+                RunnablesManager.getInstance().restartRunnables();
 
                 restartTimerRunnable();
 
@@ -149,17 +154,37 @@ public class GameManager {
      */
     public void endGame(boolean teleportPlayers, boolean pluginDisable) {
         setGameState(GameState.ENDING);
-        // Additional logic to end the game
+
+        // cancel all tasks
+        Bukkit.getScheduler().cancelTasks(MCOHexRoyale.getInstance());
+
+        // reset the game world
         WorldManager.getInstance().resetGameWorld();
-        MCOHexRoyale.getInstance().stopGame();
-        HexManager.getInstance().getHexGrid().clear();
+
+        // clear hex grid
+        HexManager.getInstance().clearGrid();
+        // clear hex teams
         HexManager.getInstance().getTeams().clear();
+
+        // remove scoreboard
+        LazyScoreboard scoreboard = RunnablesManager.getInstance().getScoreboard();
+        if (scoreboard != null) {
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                scoreboard.removeScoreboard(p);
+            }
+        }
+
+        // clear wallets
         SellPage.coinAmounts.clear();
+
+        // reset all players
         for (Player p : Bukkit.getOnlinePlayers()) {
             MCOHexRoyale.getInstance().resetPlayer(p, pluginDisable);
         }
+
+        // teleport players to lobby
         List<Player> playersToTeleport = new ArrayList<>(Bukkit.getOnlinePlayers());
-        if (teleportPlayers && !pluginDisable) teleportPlayers(WorldManager.getInstance().getLobbyWorld(), playersToTeleport, false, false);
+        if (teleportPlayers) teleportPlayers(WorldManager.getInstance().getLobbyWorld(), playersToTeleport, false, false);
         setGameState(GameState.LOBBY);
     }
 
@@ -229,14 +254,15 @@ public class GameManager {
         }
 
         // idk if we wanna do this
-        /*List<Player> playersToTeleport = new ArrayList<>();
+        List<Player> playersToTeleport = new ArrayList<>();
         for (Player p : Bukkit.getOnlinePlayers()) {
             playersToTeleport.add(p);
             p.setHealth(20.0);
             p.setSaturation(20.0f);
             p.setFoodLevel(20);
+            p.setGlowing(true);
         }
-        teleportPlayers(WorldManager.getInstance().getGameWorld(), playersToTeleport, false, true);*/
+        teleportPlayers(WorldManager.getInstance().getGameWorld(), playersToTeleport, false, true);
     }
 
     public void startSuddenDeathTimer() {

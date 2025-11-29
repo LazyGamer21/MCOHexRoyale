@@ -77,10 +77,15 @@ public class LazySelectionListener implements Listener {
             e.setLocation(new Location(matchLocation.getWorld(), matchLocation.getBlockX(), currentLocation.getBlockY(), matchLocation.getBlockZ()));
         } else return;
 
+        if (flagPoints.size() < 3) return;
+
         e.setFinishSelection(true);
         playerSettingFlag.remove(playerId);
 
-        List<Location> sorted = new ArrayList<>(flagPoints);
+        tile.setFlagPositions(flagPoints.getFirst(), flagPoints.get(1), flagPoints.get(2));
+        e.getPlayer().sendMessage("uhhh hi bbg :)");
+
+        /*List<Location> sorted = new ArrayList<>(flagPoints);
 
         sorted.add(e.getLocation());
 
@@ -90,11 +95,10 @@ public class LazySelectionListener implements Listener {
 
         tile.setFlagTop(sorted.getFirst());
         tile.setFlagBottom(sorted.get(1));
-        tile.setFlagBase(sorted.get(2));
+        tile.setFlagBase(sorted.get(2));*/
 
         // checking if the flag is a base tile, if not then spawn the flag at the bottom
         boolean spawnAtTop = tile.getCurrentTeam() != null;
-        if (tile.getHexFlag() == null) return;
         tile.getHexFlag().spawnFlag(spawnAtTop);
 
         MCOHexRoyale.getInstance().saveHexFlag(tile);

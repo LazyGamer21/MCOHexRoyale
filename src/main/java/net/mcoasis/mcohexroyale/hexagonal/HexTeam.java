@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.awt.*;
 import java.util.*;
 
 public class HexTeam {
@@ -43,22 +44,26 @@ public class HexTeam {
     }
 
     public enum TeamColor {
-        RED("Red", ChatColor.RED + ""),
-        GREEN("Green", ChatColor.GREEN + ""),
-        BLUE("Blue", ChatColor.BLUE + ""),
-        YELLOW("Yellow", ChatColor.YELLOW + "");
+        RED("Red", ChatColor.RED + "", Color.RED),
+        GREEN("Green", ChatColor.GREEN + "", Color.GREEN),
+        BLUE("Blue", ChatColor.BLUE + "", Color.BLUE),
+        YELLOW("Yellow", ChatColor.YELLOW + "", Color.YELLOW);
 
         final String name;
         final String color;
+        final Color javaColor;
 
-        TeamColor(String name, String color) {
+        TeamColor(String name, String color, Color javaColor) {
             this.name = name;
             this.color = color;
+            this.javaColor = javaColor;
         }
 
         public String getColor() {
             return color;
         }
+
+        public Color getJavaColor() { return javaColor; }
 
         public String getName() {
             return name;

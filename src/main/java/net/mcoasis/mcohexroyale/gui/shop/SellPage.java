@@ -48,11 +48,13 @@ public class SellPage extends AbstractGuiPage {
 
         FileConfiguration shopConfig = shopConfigUtil.getConfig();
 
-        setCobblestoneButtons(uuid, shopConfig.getInt("sell.Cobblestone", 1));
-        setCoalButtons(uuid, shopConfig.getInt("sell.Coal", 3));
-        setIronButtons(uuid, shopConfig.getInt("sell.Iron", 50));
-        setGoldButtons(uuid, shopConfig.getInt("sell.Gold", 100));
-        setDiamondButtons(uuid, shopConfig.getInt("sell.Diamond", 200));
+        setPlanksButtons(uuid, shopConfig.getInt("sell.planks", 1));
+        setCobblestoneButtons(uuid, shopConfig.getInt("sell.cobblestone", 1));
+        setCoalButtons(uuid, shopConfig.getInt("sell.coal", 3));
+        setIronButtons(uuid, shopConfig.getInt("sell.iron", 50));
+        setGoldButtons(uuid, shopConfig.getInt("sell.gold", 100));
+        setDiamondButtons(uuid, shopConfig.getInt("sell.diamond", 200));
+        setGlassButtons(uuid, shopConfig.getInt("sell.glass", 30));
 
         // wallet viewer
         int coins = SellPage.coinAmounts.getOrDefault(uuid, 0);
@@ -172,6 +174,14 @@ public class SellPage extends AbstractGuiPage {
         setButtons(uuid, material, cost, itemName, startingSlot);
     }
 
+    private void setGlassButtons(UUID uuid, int cost) {
+        Material material = Material.GLASS;
+        String itemName = "Glass";
+        int startingSlot = 16;
+
+        setButtons(uuid, material, cost, itemName, startingSlot);
+    }
+
     private void setButtons(UUID uuid, Material material, int sellCost, String itemName, int startingSlot) {
         assignItem(uuid, startingSlot, new GuiItem(new ItemStack(material), e -> {
             sellItems((Player) e.getWhoClicked(), material, 1, sellCost);
@@ -187,5 +197,107 @@ public class SellPage extends AbstractGuiPage {
             sellItems((Player) e.getWhoClicked(), material, getItemCount(Objects.requireNonNull(Bukkit.getPlayer(uuid)), material), sellCost);
         }).setName(ChatColor.YELLOW + "Sell All " + itemName)
                 .setLore("Total Price: " + sellCost * getItemCount(Objects.requireNonNull(Bukkit.getPlayer(uuid)), material)));
+    }
+
+    private static final List<Material> PLANK_TYPES = List.of(
+            Material.OAK_PLANKS,
+            Material.SPRUCE_PLANKS,
+            Material.BIRCH_PLANKS,
+            Material.JUNGLE_PLANKS,
+            Material.ACACIA_PLANKS,
+            Material.DARK_OAK_PLANKS,
+            Material.MANGROVE_PLANKS,
+            Material.CHERRY_PLANKS,
+            Material.BAMBOO_PLANKS,
+            Material.WARPED_PLANKS,
+            Material.CRIMSON_PLANKS
+    );
+
+    private int getTotalPlanks(Player p) {
+        int total = 0;
+
+        for (ItemStack item : p.getInventory().getContents()) {
+            if (item != null && PLANK_TYPES.contains(item.getType())) {
+                total += item.getAmount();
+            }
+        }
+
+        ItemStack offhand = p.getInventory().getItemInOffHand();
+        if (offhand != null && PLANK_TYPES.contains(offhand.getType())) {
+            total += offhand.getAmount();
+        }
+
+        return total;
+    }
+
+    private boolean sellPlanks(Player p, int amount, int sellCost) {
+        int total = getTotalPlanks(p);
+
+        if (total < amount || amount <= 0) {
+            p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
+            p.sendMessage(ChatColor.RED + "You don't have enough planks to sell!");
+            return false;
+        }
+
+        int remaining = amount;
+
+        for (ItemStack item : p.getInventory().getContents()) {
+            if (item != null && PLANK_TYPES.contains(item.getType())) {
+                int stackAmount = item.getAmount();
+                if (stackAmount <= remaining) {
+                    p.getInventory().remove(item);
+                    remaining -= stackAmount;
+                } else {
+                    item.setAmount(stackAmount - remaining);
+                    remaining = 0;
+                }
+                if (remaining <= 0) break;
+            }
+        }
+
+        // offhand
+        ItemStack offhand = p.getInventory().getItemInOffHand();
+        if (remaining > 0 && offhand != null && PLANK_TYPES.contains(offhand.getType())) {
+            int stackAmount = offhand.getAmount();
+            if (stackAmount <= remaining) {
+                p.getInventory().setItemInOffHand(null);
+                remaining -= stackAmount;
+            } else {
+                offhand.setAmount(stackAmount - remaining);
+                remaining = 0;
+            }
+        }
+
+        int coinsEarned = amount * sellCost;
+        coinAmounts.put(p.getUniqueId(), coinAmounts.getOrDefault(p.getUniqueId(), 0) + coinsEarned);
+
+        p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+        p.sendMessage(ChatColor.GREEN + "You sold " + amount + " planks for " + coinsEarned + " coins!");
+
+        GuiManager.getInstance().refreshPages();
+        return true;
+    }
+
+    private void setPlanksButtons(UUID uuid, int cost) {
+        String itemName = "Planks";
+        int startingSlot = 10; // choose any slot you want
+
+        Player player = Bukkit.getPlayer(uuid);
+        int total = getTotalPlanks(player);
+
+        assignItem(uuid, startingSlot, new GuiItem(new ItemStack(Material.OAK_PLANKS), e -> {
+            sellPlanks((Player) e.getWhoClicked(), 1, cost);
+        }).setName(ChatColor.YELLOW + "Sell 1 " + itemName)
+                .setLore("Total Price: " + cost));
+
+        assignItem(uuid, startingSlot + 9, new GuiItem(new ItemStack(Material.OAK_PLANKS, 8), e -> {
+            sellPlanks((Player) e.getWhoClicked(), 8, cost);
+        }).setName(ChatColor.YELLOW + "Sell 8 " + itemName)
+                .setLore("Total Price: " + cost * 8));
+
+        assignItem(uuid, startingSlot + 18, new GuiItem(new ItemStack(Material.OAK_PLANKS, 64), e -> {
+            sellPlanks((Player) e.getWhoClicked(), total, cost);
+        }).setName(ChatColor.YELLOW + "Sell All " + itemName)
+                .setLore("Total Price: " + cost * total));
     }
 }

@@ -40,17 +40,20 @@ public class WorldManager {
     private final Set<Location> placedGameBlocks = new HashSet<>();
 
     /**
-     * Removes all horses, pigs, items, and player-placed blocks from the game world.
+     * Removes all entities and player-placed blocks from the game world.
      */
     public void resetGameWorld() {
+        Bukkit.getLogger().info("RESETTING GAME WORLD");
         // Logic to reset the game world to its initial state
         for (Entity entity : WorldManager.getInstance().getGameWorld().getEntities()) {
-            if (entity instanceof BlockDisplay) {
+            Bukkit.getLogger().info("attempting to remove entity: " + entity.getName());
+            if (entity instanceof LivingEntity && !(entity instanceof Player)) {
                 entity.remove();
-                continue;
+                Bukkit.getLogger().info("removed entity from game world: " + entity.getName());
             }
-            if ((entity instanceof LivingEntity && !(entity instanceof Player)) || entity instanceof Item) {
+            if (entity instanceof Item || entity instanceof BlockDisplay) {
                 entity.remove();
+                Bukkit.getLogger().info("removed entity from game world: " + entity.getName());
             }
         }
         for (Location loc : placedGameBlocks) {

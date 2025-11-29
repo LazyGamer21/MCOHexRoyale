@@ -1,22 +1,35 @@
 buy:
-  IRON_SHOVEL: 150
-  IRON_PICKAXE: 250
-  IRON_AXE: 500
-  COOKED_BEEF: 100
-  MUSHROOM_STEW: 250
-  GOLDEN_APPLE: 350
-  CARROT_ON_A_STICK: 250
-  SADDLE: 350
-  BOW: 500
-  ARROW: 250
-  SHIELD: 750
-  IRON_SWORD: 250
-  DIAMOND_SWORD: 1000
-  BLAST_FURNACE: 15
+  weapons-tools:
+    iron-shovel: 150
+    iron-pickaxe: 350
+    iron-axe: 500
+    diamond-shovel: 500
+    diamond-pickaxe: 1000
+    diamond-axe: 1500
+    iron-sword: 500
+    diamond-sword: 1500
+    mace: 1500
+    bow: 500
+    arrows: 150
+    shield: 750
+  food:
+    cooked-beef: 100
+    mushroom-stew: 250
+    golden-apple: 500
+  perks:
+  potions:
+  other:
+    furnace: 5
+    poppy: 500
+    blast-furnace: 15
+    horse: 350
+    pig: 150
 
 sell:
-  Cobblestone: 1
-  Coal: 3
-  Iron: 50
-  Gold: 100
-  Diamond: 200
+  planks: 1
+  cobblestone: 3
+  coal: 5
+  glass: 30
+  iron: 50
+  gold: 100
+  diamond: 200

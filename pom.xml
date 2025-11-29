@@ -100,7 +100,7 @@
         <dependency>
             <groupId>me.ericdavis</groupId>
             <artifactId>LazySelection</artifactId>
-            <version>1.3.0</version>
+            <version>1.3.2</version>
         </dependency>
         <dependency>
             <groupId>me.ericdavis</groupId>

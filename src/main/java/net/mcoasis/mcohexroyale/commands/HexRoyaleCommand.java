@@ -30,8 +30,6 @@ public class HexRoyaleCommand implements CommandExecutor {
             Bukkit.getLogger().warning("Could not open page -- ensure it is created in main plugin class");
         }
 
-        Bukkit.broadcastMessage(ChatColor.GRAY + "Game State: " + GameManager.getInstance().getGameState().name());
-
         return true;
     }
 

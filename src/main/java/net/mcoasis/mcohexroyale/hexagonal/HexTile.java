@@ -36,6 +36,12 @@ public class HexTile {
     private HexTeam baseTeam;
     private HexTeam capturingTeam = null;
 
+    /***
+     *
+     * @param q the Q axial coordinate to assign to this tile
+     * @param r the R axial coordinate to assign to this tile
+     * @param team the {@link HexTeam} that owns this tile - only used if this is a base tile, otherwise input null
+     */
     public HexTile(int q, int r, HexTeam team) {
         this.hexManager = HexManager.getInstance();
         this.q = q;
@@ -46,39 +52,83 @@ public class HexTile {
             this.capturePercentage = 100.0;
             this.currentTeamOwns = true;
         }
-        setHex(this);
+        setHex();
     }
 
-    private void setHex(HexTile tile) {
-        HexTile oldTile = hexManager.getHexTile(tile.getQ(), tile.getR());
+    /***
+     * Assigns this {@link HexTile} to the {@link HexManager} hex grid
+     */
+    private void setHex() {
+        HexTile oldTile = hexManager.getHexTile(q, r);
         if (oldTile != null) hexManager.getHexGrid().remove(oldTile);
-        hexManager.getHexGrid().add(tile);
+        hexManager.getHexGrid().add(this);
     }
 
-    public void setFlagBase(Location loc) {
-        if (hexFlag == null) hexFlag = new HexFlag(this);
-        hexFlag.setBase(loc);
-    }
-
-    public void setFlagBottom(Location loc) {
-        if (hexFlag == null) hexFlag = new HexFlag(this);
-        hexFlag.setBottom(loc);
-    }
-
+    /***
+     *
+     * @param loc Location to set this {@link HexTile}'s flag pole top to
+     * @implNote the "top" is the physical top of the flag pole
+     */
     public void setFlagTop(Location loc) {
         if (hexFlag == null) hexFlag = new HexFlag(this);
         hexFlag.setTop(loc);
     }
 
-    public void setFlagPositions(Location top, Location bottom, Location base) {
+    /***
+     *
+     * @param loc Location to set this {@link HexTile}'s flag pole bottom to
+     * @implNote the "bottom" is the physical bottom of the flag pole, not including the base the flag pole is built upon
+     */
+    public void setFlagBottom(Location loc) {
         if (hexFlag == null) hexFlag = new HexFlag(this);
-        hexFlag.setTop(top);
-        hexFlag.setBottom(bottom);
-        hexFlag.setBase(base);
+        hexFlag.setBottom(loc);
+    }
+
+    /***
+     *
+     * @param loc Location to set this {@link HexTile}'s bottom of flag pole base to
+     * @implNote the "base" is the bottom of the stand the flag pole is built upon
+     */
+    public void setFlagBase(Location loc) {
+        if (hexFlag == null) hexFlag = new HexFlag(this);
+        hexFlag.setBase(loc);
+    }
+
+    /***
+     *
+     * @param loc1 {@link Location}
+     * @param loc2 {@link Location}
+     * @param loc3 {@link Location}
+     * @implNote Use to set all 3 flag pole/base positions at the same time.
+     * Automatically sets the locations to the correct position based on Y-level in case the points were set out of order
+     */
+    public void setFlagPositions(Location loc1, Location loc2, Location loc3) {
+        if (hexFlag == null) hexFlag = new HexFlag(this);
+
+        List<Location> locs = new ArrayList<>();
+        if (loc1 != null) locs.add(loc1.clone());
+        if (loc2 != null) locs.add(loc2.clone());
+        if (loc3 != null) locs.add(loc3.clone());
+
+        if (locs.isEmpty()) return;
+
+        // sort by Y descending: highest first
+        locs.sort(Comparator.comparingDouble(Location::getY).reversed());
+
+        // assign by sorted Y: highest -> setTop, middle -> setBottom, lowest -> setBase
+        hexFlag.setTop(locs.get(0));
+        if (locs.size() > 1) hexFlag.setBottom(locs.get(1));
+        else hexFlag.setBottom(locs.get(0));
+        if (locs.size() > 2) hexFlag.setBase(locs.get(2));
+        else hexFlag.setBase(locs.get(locs.size() - 1));
     }
 
     private final HashMap<Player, HexTeam> capturingPlayers = new HashMap<>();
 
+    /***
+     * Checks if it is being captured by any {@link HexTeam}. Changes capture percentage based
+     * on how many players are capturing (standing close enough) it.
+     */
     public void doCaptureCheck() {
         // return if this tile does not have a flag
         if (hexFlag.getBase() == null) return;
@@ -189,6 +239,10 @@ public class HexTile {
         }
     }
 
+    /***
+     *
+     * @return Returns true this is a base tile and if is being captured by a {@link HexTeam} different from the base's starting team
+     */
     public boolean isBaseAndBeingCaptured() {
         if (baseTeam == null) return false;
         if (capturingPlayers.isEmpty()) return false;
@@ -197,11 +251,15 @@ public class HexTile {
         return !capturingTeam.equals(baseTeam);
     }
 
+    /***
+     * Move the display entities for this {@link HexTile}'s {@link HexFlag} based on capture percentage and flag pole locations
+     */
     public void updateFlagPosition() {
         if (hexFlag == null) return;
 
         hexFlag.moveFlag(capturePercentage);
     }
+
 
     public void flagOwnershipGone(boolean callLossEvent) {
         currentTeamOwns = false;
@@ -363,6 +421,44 @@ public class HexTile {
         };
     }
 
+    public void spawnParticles(double distance) {
+        Location loc = getHexFlag().getBase();
+        String color = isCurrentTeamOwns() ? getCurrentTeam().getTeamColor().getName() : "";
+
+        World world = loc.getWorld();
+        if (world == null) return;
+
+        int points = 36; // number of particles around the circle (higher = smoother)
+        double angleStep = (2 * Math.PI) / points;
+
+        for (int i = 0; i < points; i++) {
+            double angle = i * angleStep;
+            double x = loc.getX() + distance * Math.cos(angle);
+            double z = loc.getZ() + distance * Math.sin(angle);
+
+            Particle.DustOptions dustColor = new Particle.DustOptions(Color.BLACK, 1.0f);
+            switch (color) {
+                case "Red":
+                    dustColor = new Particle.DustOptions(Color.RED, 1.0f);
+                    break;
+                case "Blue":
+                    dustColor = new Particle.DustOptions(Color.BLUE, 1.0f);
+                    break;
+                case "Green":
+                    dustColor = new Particle.DustOptions(Color.LIME, 1.0f);
+                    break;
+                case "Yellow":
+                    dustColor = new Particle.DustOptions(Color.YELLOW, 1.0f);
+                    break;
+                default:
+                    break;
+            }
+
+            Location particleLoc = new Location(world, x, loc.getY(), z);
+            world.spawnParticle(Particle.DUST, particleLoc, 3, 0.5, 0.5, 0.5, 0, dustColor);
+        }
+    }
+
     // -- == Getters + Setters == --
 
     public int getQ() {
@@ -378,7 +474,7 @@ public class HexTile {
      * @return The base of the flag pole
      */
     public Location getFlagLocation() {
-        if (hexFlag == null) return null;
+        if (getHexFlag() == null) return null;
         return hexFlag.getBase();
     }
 

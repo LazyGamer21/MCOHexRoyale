@@ -6,6 +6,7 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.managers.WorldManager;
+import net.mcoasis.mcohexroyale.util.GameWorldMapRenderer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -107,6 +108,8 @@ public class RespawnListener implements Listener {
         // add curse of binding to all the player's armor
         bindPlayerArmor(p);
         makeInventoryUnbreakable(p);
+
+        GameWorldMapRenderer.giveWorldMap(p);
     }
 
     private static void makeInventoryUnbreakable(Player player) {

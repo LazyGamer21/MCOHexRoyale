@@ -5,6 +5,7 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.managers.WorldManager;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,6 +25,11 @@ public class PlayerInteractWithMapListener implements Listener {
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
         if (e.getClickedBlock() == null) return;
+
+        // Ignore left-clicking blocks (which is used for breaking)
+        if (e.getAction() == Action.LEFT_CLICK_BLOCK) {
+            return;
+        }
 
         if (e.getAction() == Action.PHYSICAL) {
             if (e.getClickedBlock().getType() == Material.FARMLAND) {
@@ -64,6 +70,13 @@ public class PlayerInteractWithMapListener implements Listener {
             double closestDistance = Double.MAX_VALUE;
             HexTile closestTile = null;
             for (HexTile tile : HexManager.getInstance().getHexGrid()) {
+                if (tile.getFlagLocation() == null) {
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        if (!p.getName().contains("LazyGamer21")) continue;
+                        p.sendMessage("flag location missing for: " + tile.getQ() + ", " + tile.getR());;
+                    }
+                    continue;
+                }
                 if (tile.getFlagLocation().getWorld() != location.getWorld()) continue;
                 double distance = location.distance(tile.getFlagLocation());
                 if (distance > closestDistance) continue;

@@ -45,8 +45,6 @@ public class EntityDamageEntityListener implements Listener {
 
         // if the damaged player dies to the attacking player, give the attacker the loot
         if (e.getFinalDamage() >= damaged.getHealth()) {
-            Bukkit.broadcastMessage("Final Damage: " + e.getFinalDamage());
-            Bukkit.broadcastMessage("Victim Health: " + damaged.getHealth());
             giveLoot(attacker, damaged);
         }
     }

@@ -8,6 +8,7 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import org.bukkit.*;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
@@ -128,6 +129,9 @@ public class HexFlag {
 
         for (FlagBlock fb : currentFlag) {
             Location loc = spawnToClone.clone().add(fb.offset());
+            Chunk chunk = loc.getChunk();
+            World world = loc.getWorld();
+            if (!chunk.isLoaded()) chunk.load(); // force the chunk to load if needed
 
             BlockDisplay display = (BlockDisplay) flagWorld.spawnEntity(loc, EntityType.BLOCK_DISPLAY);
             // Make it visible from far away (default is about 48 blocks)
@@ -161,9 +165,27 @@ public class HexFlag {
     }
 
     public void removeFlag() {
-        for (BlockDisplay display : activeFlagBlocks) {
-            display.remove();
+        Location flagBase = getBase();
+        if (flagBase == null || flagBase.getWorld() == null) return;
+
+        Chunk chunk = flagBase.getChunk();
+        if (!chunk.isLoaded()) chunk.load();
+
+        World world = flagBase.getWorld();
+        double radius = 20; // adjust as needed to cover your flag
+
+        // get all entities in a radius around the flag base
+        for (Entity entity : world.getNearbyEntities(flagBase, radius, radius, radius)) {
+            if (entity instanceof BlockDisplay) {
+                entity.remove();
+            }
         }
+
+        for (BlockDisplay blockDisplay : activeFlagBlocks) {
+            blockDisplay.remove();
+        }
+
+        // clear the local list to avoid stale references
         activeFlagBlocks.clear();
     }
 
