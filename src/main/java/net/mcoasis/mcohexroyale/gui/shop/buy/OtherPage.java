@@ -85,6 +85,8 @@ public class OtherPage extends AbstractGuiPage {
     }
 
     private String formatMaterialName(Material material) {
+        if (material == Material.CAULDRON) return "Porta Potty";
+
         String raw = material.toString().toLowerCase().replace('_', ' ');
         String[] parts = raw.split(" ");
         StringBuilder sb = new StringBuilder();
@@ -119,8 +121,8 @@ public class OtherPage extends AbstractGuiPage {
                 new ShopItem(new ItemStack(Material.FURNACE),
                         shopConfig.getInt("buy.other.furnace", 5000), 13),
 
-                new ShopItem(new ItemStack(Material.POPPY),
-                        shopConfig.getInt("buy.other.poppy", 500000), 22),
+                new ShopItem(new ItemStack(Material.CAULDRON),
+                        shopConfig.getInt("buy.other.porta-potty", 500000), 22),
 
                 new ShopItem(new ItemStack(Material.BLAST_FURNACE),
                         shopConfig.getInt("buy.other.blast-furnace", 15000), 31),
