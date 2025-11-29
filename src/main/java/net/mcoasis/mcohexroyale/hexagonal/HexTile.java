@@ -133,16 +133,24 @@ public class HexTile {
         // return if this tile does not have a flag
         if (hexFlag.getBase() == null) return;
 
-        // only allow capturing of the middle tile after the middle tile time is up
-        if (q == 0 && r == 0 && GameManager.getInstance().getMiddleTileSeconds() > 0) return;
-
         capturingPlayersAmount = 0;
 
         // get all the people in the flag area that can capture it
         setCapturers();
 
-        if (!capturingPlayers.isEmpty()) {
+        if (capturingPlayers.isEmpty()) {
+            return;
+        } else if (q == 0 && r == 0 && GameManager.getInstance().getMiddleTileSeconds() > 0) {
+            // only allow capturing of the middle tile after the middle tile time is up
 
+            // send messages to people attempting to capture the middle tile
+            for (Player p : capturingPlayers.keySet()) {
+                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GRAY + "Middle tile is not open yet!"));
+            }
+            return;
+        }
+
+        if (!capturingPlayers.isEmpty()) {
             // Count players per team
             Map<TeamColor, Integer> teamCounts = new EnumMap<>(TeamColor.class);
 
@@ -176,7 +184,10 @@ public class HexTile {
 
             //send action bar to show team numbers
             for (Player capturer : capturingPlayers.keySet()) {
-                if (secondTeam == null) continue;
+                if (secondTeam == null) {
+                    capturer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(topTeam.getColor() + topTeam.getName() + ": " + max + ChatColor.RESET + ChatColor.GRAY + ChatColor.BOLD + " | " + ChatColor.RESET + ChatColor.GRAY + "0"));
+                    continue;
+                }
                 capturer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(topTeam.getColor() + topTeam.getName() + ": " + max + ChatColor.RESET + ChatColor.GRAY + ChatColor.BOLD + " | " + ChatColor.RESET + secondTeam.getColor() + secondTeam.getName() + ": " + secondMax));
             }
 
