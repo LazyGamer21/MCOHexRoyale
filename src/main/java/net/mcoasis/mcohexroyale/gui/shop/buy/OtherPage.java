@@ -56,7 +56,8 @@ public class OtherPage extends AbstractBuyPage{
                         shopConfig.getInt("buy.other.furnace", 5000), 10),
 
                 new ShopItem(new ItemStack(Material.CAULDRON),
-                        shopConfig.getInt("buy.other.porta-potty", 500000), 22),
+                        shopConfig.getInt("buy.other.porta-potty", 500000), 22)
+                        .setDisplayName("Porta Potty"),
 
                 new ShopItem(new ItemStack(Material.BLAST_FURNACE),
                         shopConfig.getInt("buy.other.blast-furnace", 15000), 19),
