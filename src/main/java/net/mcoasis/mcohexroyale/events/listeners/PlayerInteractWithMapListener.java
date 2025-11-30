@@ -31,6 +31,28 @@ public class PlayerInteractWithMapListener implements Listener {
             return;
         }
 
+        // Stop harvesting sweet berries, glow berries, cave vines, etc.
+        Material blockType = e.getClickedBlock().getType();
+
+        // Sweet berry bush
+        if (blockType == Material.SWEET_BERRY_BUSH) {
+            e.setCancelled(true);
+            return;
+        }
+
+        // Glow berries & cave vines (hanging berries)
+        if (blockType == Material.CAVE_VINES || blockType == Material.CAVE_VINES_PLANT) {
+            e.setCancelled(true);
+            return;
+        }
+
+        // Pitcher pods (1.20+), bamboo shoots, etc — fully unharvestable
+        if (blockType == Material.PITCHER_CROP || blockType == Material.PITCHER_PLANT) {
+            e.setCancelled(true);
+            return;
+        }
+
+
         if (e.getAction() == Action.PHYSICAL) {
             if (e.getClickedBlock().getType() == Material.FARMLAND) {
                 e.setCancelled(true);

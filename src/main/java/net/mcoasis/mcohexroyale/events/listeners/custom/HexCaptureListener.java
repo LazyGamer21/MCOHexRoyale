@@ -100,13 +100,15 @@ public class HexCaptureListener implements Listener {
                 middleTileTeam = teamWithMiddleTile;
 
                 // If the countdown has finished, fire the win event
-                if (timeLeft <= 0) {
+                // If it is being captured by another team do not end
+                if (timeLeft <= 0 && middle.getCurrentTeam() == teamWithMiddleTile) {
                     Bukkit.getPluginManager().callEvent(new TeamWonEvent(teamWithMiddleTile, true));
                     cancel();
                     return;
                 }
 
                 timeLeft--;
+                if (timeLeft <= 0) timeLeft = 0;
                 winTimeLeft = timeLeft;
             }
         };

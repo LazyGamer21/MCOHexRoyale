@@ -5,6 +5,7 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.events.HexLossEvent;
 import net.mcoasis.mcohexroyale.events.listeners.EntityDamageEntityListener;
 import net.mcoasis.mcohexroyale.events.listeners.RespawnListener;
+import net.mcoasis.mcohexroyale.events.listeners.custom.HexCaptureListener;
 import net.mcoasis.mcohexroyale.gui.shop.SellPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
@@ -65,6 +66,8 @@ public class GameManager {
         WorldManager.getInstance().resetGameWorld();
 
         HexManager.getInstance().populateGrid();
+
+        HexCaptureListener.middleTileTeam = null;
 
         // load all team spawns
         for (HexTeam team : HexManager.getInstance().getTeams()) {
@@ -157,6 +160,8 @@ public class GameManager {
     public void endGame(boolean teleportPlayers, boolean pluginDisable) {
         setGameState(GameState.ENDING);
 
+        HexCaptureListener.middleTileTeam = null;
+
         // cancel all tasks
         Bukkit.getScheduler().cancelTasks(MCOHexRoyale.getInstance());
 
@@ -193,7 +198,7 @@ public class GameManager {
     public void teleportAndResetPlayer(HexTeam team, Player p) {
         team.getBaseTile().teleportToBase(p, true);
         MCOHexRoyale.getInstance().resetPlayer(p, false);
-        Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> setKit(p, false), 1L);
+        Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> setKit(p), 1L);
     }
 
     public void restartTimerRunnable() {
@@ -224,7 +229,7 @@ public class GameManager {
             if (!team.isTeamAlive()) return;
             p.setGameMode(GameMode.SURVIVAL);
             team.getBaseTile().teleportToBase(p, true);
-            setKit(p, false);
+            setKit(p);
             team.getMembersAlive().put(p, true);
             RespawnListener.playerRespawning.remove(p.getUniqueId());
         }

@@ -299,16 +299,32 @@ public class HexTile {
     private void setCapturers() {
         capturingPlayers.clear();
         for (HexTeam team : HexManager.getInstance().getTeams()) {
-            if (!team.isTeamAlive()) continue;
+            if (!team.isTeamAlive()) {
+                if ((q == 2 && r == 0)) Bukkit.getLogger().warning("team is dead");
+                continue;
+            }
             for (Player member : team.getMembersAlive().keySet()) {
-                if (team.getMembersAlive().get(member) == false) continue;
-                if (member.isDead()) continue;
-                if (member.getLocation().getWorld() == null || !member.getLocation().getWorld().equals(hexFlag.getBase().getWorld())) continue;
+                if (team.getMembersAlive().get(member) == false) {
+                    if (member.getName().contains("God") && (q == 2 && r == 0)) Bukkit.getLogger().warning("dead in team - " + member.getName());
+                    continue;
+                }
+                if (member.isDead()) {
+                    if (member.getName().contains("God") && (q == 2 && r == 0)) Bukkit.getLogger().warning("dead bruh - " + member.getName());
+                    continue;
+                }
+                if (member.getLocation().getWorld() == null || !member.getLocation().getWorld().equals(hexFlag.getBase().getWorld())) {
+                    if (member.getName().contains("God") && (q == 2 && r == 0)) Bukkit.getLogger().warning("different world - " + member.getName());
+                    continue;
+                }
                 if (member.getLocation().distance(hexFlag.getBase()) > MCOHexRoyale.getInstance().getConfig().getDouble("capture-distance")) {
+                    if (member.getName().contains("God") && (q == 2 && r == 0)) Bukkit.getLogger().warning("too far - " + member.getName());
                     continue;
                 }
 
-                if (!HexManager.getInstance().canCapture(team, this)) continue;
+                if (!HexManager.getInstance().canCapture(team, this)) {
+
+                    continue;
+                }
                 capturingPlayers.put(member, team);
             }
         }
