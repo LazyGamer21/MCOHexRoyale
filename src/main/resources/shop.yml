@@ -34,6 +34,7 @@ buy:
       2: 500
   other:
     furnace: 5
+    smoker: 5
     porta-potty: 500
     blast-furnace: 15
     horse: 350

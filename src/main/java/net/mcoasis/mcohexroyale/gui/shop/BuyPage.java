@@ -3,24 +3,16 @@ package net.mcoasis.mcohexroyale.gui.shop;
 import me.ericdavis.lazygui.item.GuiItem;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import me.ericdavis.lazygui.test.GuiManager;
-import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.ShopPage;
 import net.mcoasis.mcohexroyale.gui.shop.buy.FoodPage;
 import net.mcoasis.mcohexroyale.gui.shop.buy.OtherPage;
 import net.mcoasis.mcohexroyale.gui.shop.buy.PotionsPage;
 import net.mcoasis.mcohexroyale.gui.shop.buy.WeaponsPage;
-import net.mcoasis.mcohexroyale.util.ConfigUtil;
-import net.mcoasis.mcohexroyale.util.ShopItem;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
