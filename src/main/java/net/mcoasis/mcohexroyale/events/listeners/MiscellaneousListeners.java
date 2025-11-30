@@ -2,6 +2,8 @@ package net.mcoasis.mcohexroyale.events.listeners;
 
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.managers.WorldManager;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -29,7 +31,6 @@ public class MiscellaneousListeners implements Listener {
 
         if (e.getEntity() instanceof Horse horse) {
             horse.setTamed(true);
-            horse.setOwner(null);
         }
     }
 

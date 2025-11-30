@@ -336,7 +336,7 @@ public class GameManager {
         int teleportInterval = config.getInt("teleport-interval", 5);
 
         // Defensive check
-        if (world == null || players == null || players.isEmpty()) return;
+        if (world == null || players == null) return;
 
         // Copy list so we can modify it safely
         List<Player> remaining = new ArrayList<>(players);
@@ -369,7 +369,7 @@ public class GameManager {
                 }
 
                 // Stop the task once all players are teleported
-                if (!iterator.hasNext()) {
+                if (!iterator.hasNext() || players.isEmpty()) {
                     if (startOfGame) {
                         GameManager.getInstance().playersDoneTeleportingAtStart();
                     } else if (suddenDeath) {

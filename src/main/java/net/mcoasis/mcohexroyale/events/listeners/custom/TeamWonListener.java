@@ -32,10 +32,11 @@ public class TeamWonListener implements Listener {
 
         Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> {
             GameManager.getInstance().endGame(true, false);
+            EntityDamageEntityListener.pvpEnabled = true;
         }, 20L * 10); // teleport after 10 seconds
 
         GameManager.getInstance().setSuddenDeathStarted(false);
-        EntityDamageEntityListener.pvpEnabled = true;
+        EntityDamageEntityListener.pvpEnabled = false;
     }
 
 }
