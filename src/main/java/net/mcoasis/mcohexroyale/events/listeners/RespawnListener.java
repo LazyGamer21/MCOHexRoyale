@@ -7,10 +7,7 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.managers.WorldManager;
 import net.mcoasis.mcohexroyale.util.GameWorldMapRenderer;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
@@ -23,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import java.util.Map;
 import java.util.Set;
@@ -108,6 +106,7 @@ public class RespawnListener implements Listener {
         // add curse of binding to all the player's armor
         bindPlayerArmor(p);
         makeInventoryUnbreakable(p);
+        dyeArmor(p);
 
         GameWorldMapRenderer.giveWorldMap(p);
     }
@@ -157,7 +156,7 @@ public class RespawnListener implements Listener {
         clearArmorAndTools(p);
 
         // set armor
-        inv.setHelmet(new ItemStack(Material.CHAINMAIL_HELMET));
+        inv.setHelmet(new ItemStack(Material.LEATHER_HELMET));
         inv.setChestplate(new ItemStack(Material.CHAINMAIL_CHESTPLATE));
         inv.setLeggings(new ItemStack(Material.CHAINMAIL_LEGGINGS));
         inv.setBoots(new ItemStack(Material.CHAINMAIL_BOOTS));
@@ -177,7 +176,7 @@ public class RespawnListener implements Listener {
         clearArmorAndTools(p);
 
         // set armor
-        inv.setHelmet(new ItemStack(Material.CHAINMAIL_HELMET));
+        inv.setHelmet(new ItemStack(Material.LEATHER_HELMET));
         inv.setChestplate(new ItemStack(Material.CHAINMAIL_CHESTPLATE));
         inv.setLeggings(new ItemStack(Material.IRON_LEGGINGS));
         inv.setBoots(new ItemStack(Material.IRON_BOOTS));
@@ -209,7 +208,7 @@ public class RespawnListener implements Listener {
         inv.clear();
 
         // set armor
-        inv.setHelmet(new ItemStack(Material.CHAINMAIL_HELMET));
+        inv.setHelmet(new ItemStack(Material.LEATHER_HELMET));
         inv.setChestplate(new ItemStack(Material.CHAINMAIL_CHESTPLATE));
         inv.setLeggings(leggings);
         inv.setBoots(boots);
@@ -275,6 +274,33 @@ public class RespawnListener implements Listener {
             // food
             Material.BREAD
     );
+
+    private static void dyeArmor(Player p) {
+        // dye armor based on team color
+        HexTeam playerTeam = HexManager.getInstance().getPlayerTeam(p);
+        if (playerTeam == null) return;
+
+        // TeamColor - RED, BLUE, GREEN, YELLOW
+        Color dyeColor = playerTeam.getTeamColor().getBukkitColor();
+
+        // dye all leather armor based on the teamColor
+        // Armor slots
+        ItemStack[] armor = p.getInventory().getArmorContents();
+
+        for (int i = 0; i < armor.length; i++) {
+            ItemStack piece = armor[i];
+
+            // Only dye leather armor
+            if (piece != null && piece.getItemMeta() instanceof LeatherArmorMeta meta) {
+                meta.setColor(dyeColor);
+                piece.setItemMeta(meta);
+                armor[i] = piece;
+            }
+        }
+
+        // Apply updated armor back onto player
+        p.getInventory().setArmorContents(armor);
+    }
 
 
 }

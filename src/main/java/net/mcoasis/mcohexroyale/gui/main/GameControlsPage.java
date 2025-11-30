@@ -4,6 +4,8 @@ import me.ericdavis.lazygui.item.*;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.MainPage;
+import net.mcoasis.mcohexroyale.hexagonal.HexManager;
+import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.util.GameWorldMapRenderer;
 import org.bukkit.ChatColor;
@@ -34,6 +36,10 @@ public class GameControlsPage extends AbstractGuiPage {
     @Override
     protected void assignItems(UUID playerId) {
         assignItem(playerId, 20, new GuiItem(Material.GREEN_CONCRETE, e -> {
+            if (!gameCanStart()) {
+                e.getWhoClicked().sendMessage(ChatColor.RED + "Unable to Start Game - Must have at least 2 teams!");
+                return;
+            }
             e.getWhoClicked().sendMessage(ChatColor.GREEN + "Starting the Game...");
             GameManager.getInstance().startGame();
         }).setName(ChatColor.GREEN + "Start"));
@@ -57,5 +63,19 @@ public class GameControlsPage extends AbstractGuiPage {
     @Override
     protected List<GuiItem> getListedButtons(UUID playerId) {
         return null;
+    }
+
+    /***
+     *
+     * @return True if at least 2 {@link HexTeam}s have at least 1 person in them (so game won't immediately end)
+     */
+    private boolean gameCanStart() {
+        HexTeam teamWithPeople = null;
+        for (HexTeam team : HexManager.getInstance().getTeams()) {
+            if (team.getMembersAlive().isEmpty()) continue;
+            if (teamWithPeople != null) return true;
+            teamWithPeople = team;
+        }
+        return false;
     }
 }

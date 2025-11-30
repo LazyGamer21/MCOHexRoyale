@@ -44,19 +44,21 @@ public class HexTeam {
     }
 
     public enum TeamColor {
-        RED("Red", ChatColor.RED + "", Color.RED),
-        GREEN("Green", ChatColor.GREEN + "", Color.GREEN),
-        BLUE("Blue", ChatColor.BLUE + "", Color.BLUE),
-        YELLOW("Yellow", ChatColor.YELLOW + "", Color.YELLOW);
+        RED("Red", ChatColor.RED + "", Color.RED, org.bukkit.Color.RED),
+        GREEN("Green", ChatColor.GREEN + "", Color.GREEN, org.bukkit.Color.GREEN),
+        BLUE("Blue", ChatColor.BLUE + "", Color.BLUE, org.bukkit.Color.BLUE),
+        YELLOW("Yellow", ChatColor.YELLOW + "", Color.YELLOW, org.bukkit.Color.YELLOW);
 
         final String name;
         final String color;
         final Color javaColor;
+        final org.bukkit.Color bukkitColor;
 
-        TeamColor(String name, String color, Color javaColor) {
+        TeamColor(String name, String color, Color javaColor, org.bukkit.Color bukkitColor) {
             this.name = name;
             this.color = color;
             this.javaColor = javaColor;
+            this.bukkitColor = bukkitColor;
         }
 
         public String getColor() {
@@ -64,6 +66,8 @@ public class HexTeam {
         }
 
         public Color getJavaColor() { return javaColor; }
+
+        public org.bukkit.Color getBukkitColor() { return bukkitColor; }
 
         public String getName() {
             return name;
