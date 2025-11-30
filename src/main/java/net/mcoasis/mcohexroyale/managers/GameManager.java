@@ -225,8 +225,10 @@ public class GameManager {
 
         for (UUID id : RespawnListener.playerRespawning) {
             Player p = Bukkit.getPlayer(id);
+            if (p == null) continue;
             HexTeam team = HexManager.getInstance().getPlayerTeam(p);
-            if (!team.isTeamAlive()) return;
+            if (team == null) continue;
+            if (!team.isTeamAlive()) continue;
             p.setGameMode(GameMode.SURVIVAL);
             team.getBaseTile().teleportToBase(p, true);
             setKit(p);
@@ -234,16 +236,16 @@ public class GameManager {
             RespawnListener.playerRespawning.remove(p.getUniqueId());
         }
 
-        Location middleSpawn = loadLocation(MCOHexRoyale.getInstance().getConfig(), "middle-tile-spawn");
+        //Location middleSpawn = loadLocation(MCOHexRoyale.getInstance().getConfig(), "middle-tile-spawn");
 
         // if the middleSpawn is not set then end the game as a draw
-        if (middleSpawn == null) {
+        /*if (middleSpawn == null) {
             Bukkit.getLogger().warning("[HexRoyale] Middle tile spawn location is not set! Cannot start sudden death.");
             gameEndedByTime();
             return;
-        }
+        }*/
 
-        EntityDamageEntityListener.pvpEnabled = false;
+        // EntityDamageEntityListener.pvpEnabled = false;
 
         // take away spawns
         for (HexTeam team : HexManager.getInstance().getTeams()) {
@@ -261,15 +263,15 @@ public class GameManager {
         }
 
         // idk if we wanna do this
-        List<Player> playersToTeleport = new ArrayList<>();
+        //List<Player> playersToTeleport = new ArrayList<>();
         for (Player p : Bukkit.getOnlinePlayers()) {
-            playersToTeleport.add(p);
-            p.setHealth(20.0);
-            p.setSaturation(20.0f);
-            p.setFoodLevel(20);
+            //playersToTeleport.add(p);
+            //p.setHealth(20.0);
+            //p.setSaturation(20.0f);
+            //p.setFoodLevel(20);
             p.setGlowing(true);
         }
-        teleportPlayers(WorldManager.getInstance().getGameWorld(), playersToTeleport, false, true);
+        //teleportPlayers(WorldManager.getInstance().getGameWorld(), playersToTeleport, false, true);
     }
 
     public void startSuddenDeathTimer() {
@@ -344,6 +346,10 @@ public class GameManager {
             @Override
             public void run() {
                 int count = 0;
+
+                for (Player p : players) {
+                    p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GRAY + "Teleporting players..."));
+                }
 
                 while (iterator.hasNext() && count < maxTeleportCount) {
                     Player player = iterator.next();

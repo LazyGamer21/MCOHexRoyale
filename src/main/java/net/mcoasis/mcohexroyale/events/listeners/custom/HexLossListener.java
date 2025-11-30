@@ -10,6 +10,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
 
@@ -51,7 +52,8 @@ public class HexLossListener implements Listener {
         }
 
         if (tile.getQ() == 0 && tile.getR() == 0) {
-            HexCaptureListener.getWinCountdown().cancel();
+            BukkitRunnable winCountdown = HexCaptureListener.getWinCountdown();
+            if (winCountdown != null) winCountdown.cancel();
 
             Bukkit.broadcastMessage(ChatColor.BOLD + team.getTeamColor().getColor() + team.getTeamColor().getName() + " Team "
                     + ChatColor.RESET + ChatColor.GRAY + "has lost the middle tile!");

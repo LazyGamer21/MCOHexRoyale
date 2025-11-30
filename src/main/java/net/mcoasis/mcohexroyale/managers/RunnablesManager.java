@@ -134,6 +134,7 @@ public class RunnablesManager {
                 scoreboard.setStat(player, "timer", ChatColor.YELLOW + "Sudden Death: "
                         + ChatColor.WHITE + GameManager.getInstance().getFormattedTime(GameManager.getInstance().getGameTimerSeconds()));
 
+
                 if (GameManager.getInstance().getMiddleTileSeconds() <= 0) {
                     if (HexCaptureListener.middleTileTeam != null) {
                         int timeleft = HexCaptureListener.getWinTimeLeft();

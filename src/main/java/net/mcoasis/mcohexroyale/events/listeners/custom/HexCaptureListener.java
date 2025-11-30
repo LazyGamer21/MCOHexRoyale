@@ -95,8 +95,8 @@ public class HexCaptureListener implements Listener {
             @Override
             public void run() {
                 // If the team lost control of the middle tile, cancel the countdown
-                HexTile middle = HexManager.getInstance().getHexTile(0, 0);
-                if (!middle.teamOwns(teamWithMiddleTile)) {
+                HexTile middleTile = HexManager.getInstance().getHexTile(0, 0);
+                if (!middleTile.teamOwns(teamWithMiddleTile)) {
                     cancel();
                     middleTileTeam = null;
                     return;
@@ -105,14 +105,16 @@ public class HexCaptureListener implements Listener {
 
                 // If the countdown has finished, fire the win event
                 // If it is being captured by another team do not end
-                if (timeLeft <= 0 && middle.getCurrentTeam() == teamWithMiddleTile) {
+                Bukkit.getLogger().info("Team Owning Mid Tile: " + teamWithMiddleTile.getTeamColor().getName());
+                if (middleTile.getCapturingTeam() != null) Bukkit.getLogger().info("Mid Tile Capturing Team: " + middleTile.getCapturingTeam().getTeamColor().getName());
+                if (timeLeft <= 0 && (middleTile.getCapturingTeam() == null ||middleTile.getCapturingTeam().getTeamColor() == teamWithMiddleTile.getTeamColor())) {
                     Bukkit.getPluginManager().callEvent(new TeamWonEvent(teamWithMiddleTile, true));
                     cancel();
                     return;
                 }
 
                 timeLeft--;
-                if (timeLeft <= 0) timeLeft = 0;
+                if (timeLeft < 0) timeLeft = 0;
                 winTimeLeft = timeLeft;
             }
         };

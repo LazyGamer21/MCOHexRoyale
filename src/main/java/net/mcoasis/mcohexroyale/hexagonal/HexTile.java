@@ -300,7 +300,6 @@ public class HexTile {
         capturingPlayers.clear();
         for (HexTeam team : HexManager.getInstance().getTeams()) {
             if (!team.isTeamAlive()) {
-                if ((q == 2 && r == 0)) Bukkit.getLogger().warning("team is dead");
                 continue;
             }
             for (UUID memberId : team.getMembersAlive().keySet()) {
@@ -548,5 +547,9 @@ public class HexTile {
 
     public void setCurrentTeam(HexTeam currentTeam) {
         this.currentTeam = currentTeam;
+    }
+
+    public HexTeam getCapturingTeam() {
+        return this.capturingTeam;
     }
 }
