@@ -53,7 +53,7 @@ public class HexManager {
      */
     public @Nullable HexTeam getPlayerTeam(Player player) {
         for (HexTeam team : teams) {
-            if (team.getMembersAlive().containsKey(player)) {
+            if (team.getMembersAlive().containsKey(player.getUniqueId())) {
                 return team;
             }
         }
@@ -165,7 +165,6 @@ public class HexManager {
                         boolean spawnAtTop = tile.getCurrentTeam() != null;
                         if (tile.getHexFlag() != null) tile.getHexFlag().spawnFlag(spawnAtTop);
 
-                        Bukkit.getLogger().info("[HexRoyale] Loaded flag from config for tile: (" + q + ", " + r + ")");
                     } else {
                         Bukkit.getLogger().warning("[MCOHexRoyale] Failed to loadHexFlags - tile is null");
                     }

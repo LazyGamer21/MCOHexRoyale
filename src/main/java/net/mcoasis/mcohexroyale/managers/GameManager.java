@@ -230,7 +230,7 @@ public class GameManager {
             p.setGameMode(GameMode.SURVIVAL);
             team.getBaseTile().teleportToBase(p, true);
             setKit(p);
-            team.getMembersAlive().put(p, true);
+            team.getMembersAlive().put(p.getUniqueId(), true);
             RespawnListener.playerRespawning.remove(p.getUniqueId());
         }
 

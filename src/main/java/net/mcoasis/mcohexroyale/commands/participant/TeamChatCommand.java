@@ -2,6 +2,7 @@ package net.mcoasis.mcohexroyale.commands.participant;
 
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -52,9 +53,10 @@ public class TeamChatCommand implements CommandExecutor {
     }
 
     public void sendTeamMessage(Player sender, HexTeam team, String message) {
-        Set<Player> members = team.getMembersAlive().keySet();
+        Set<UUID> members = team.getMembersAlive().keySet();
 
-        for (Player teammate : members) {
+        for (UUID teammateId : members) {
+            Player teammate = Bukkit.getPlayer(teammateId);
             if (teammate != null && teammate.isOnline()) {
                 teammate.sendMessage(ChatColor.DARK_AQUA + "" + ChatColor.BOLD + "[Team] " + ChatColor.RESET + team.getTeamColor().getColor() + sender.getName() + ": " + ChatColor.GRAY + message);
             }

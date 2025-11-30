@@ -11,6 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import java.util.UUID;
+
 public class HexLossListener implements Listener {
 
     @EventHandler
@@ -38,7 +40,8 @@ public class HexLossListener implements Listener {
 
         if (tile.equals(team.getBaseTile())) {
             Bukkit.broadcastMessage(ChatColor.BOLD + team.getTeamColor().getColor() + team.getTeamColor().getName() + " Team" + ChatColor.RESET + ChatColor.DARK_AQUA + " has lost their base tile!");
-            for (Player member : team.getMembersAlive().keySet()) {
+            for (UUID memberId : team.getMembersAlive().keySet()) {
+                Player member = Bukkit.getPlayer(memberId);
                 // send a title message saying "Base Lost!" and send dragon sound
                 member.sendTitle(ChatColor.RED + "Base Lost!", ChatColor.GRAY + "You can no longer respawn!", 10, 70, 20);
                 member.playSound(member.getLocation(), "minecraft:entity.ender_dragon.growl", 1.0f, 1.0f);

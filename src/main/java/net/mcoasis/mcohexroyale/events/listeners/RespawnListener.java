@@ -54,7 +54,7 @@ public class RespawnListener implements Listener {
         p.getInventory().clear();
         Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> p.setGameMode(GameMode.SPECTATOR), 1L);
         Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> team.getBaseTile().teleportToBase(p, true), 1L);
-        team.getMembersAlive().put(p, false);
+        team.getMembersAlive().put(p.getUniqueId(), false);
 
         if (team.hasBaseOwnership()) {
             int respawnTimer = MCOHexRoyale.getInstance().getConfig().getInt("respawn-timer", 3);
@@ -68,7 +68,7 @@ public class RespawnListener implements Listener {
                 p.setGameMode(GameMode.SURVIVAL);
                 team.getBaseTile().teleportToBase(p, true);
                 setKit(p);
-                team.getMembersAlive().put(p, true);
+                team.getMembersAlive().put(p.getUniqueId(), true);
                 playerRespawning.remove(p.getUniqueId());
             }, 20L * respawnTimer);
 

@@ -19,6 +19,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.Map;
+import java.util.UUID;
 
 public class RunnablesManager {
 
@@ -80,7 +81,8 @@ public class RunnablesManager {
         for (HexTeam team : HexManager.getInstance().getTeams()) {
             if (!team.getBaseTile().isBaseAndBeingCaptured()) continue;
             if (!team.isTeamAlive()) continue;
-            for (Player member : team.getMembersAlive().keySet()) {
+            for (UUID memberId : team.getMembersAlive().keySet()) {
+                Player member = Bukkit.getPlayer(memberId);
                 // send action bar message and sound effect
                 member.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(ChatColor.RED + "Your base is being captured!"));
                 Location loc = member.getLocation();

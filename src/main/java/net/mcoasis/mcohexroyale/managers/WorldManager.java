@@ -46,14 +46,11 @@ public class WorldManager {
         Bukkit.getLogger().info("RESETTING GAME WORLD");
         // Logic to reset the game world to its initial state
         for (Entity entity : WorldManager.getInstance().getGameWorld().getEntities()) {
-            Bukkit.getLogger().info("attempting to remove entity: " + entity.getName());
             if (entity instanceof LivingEntity && !(entity instanceof Player)) {
                 entity.remove();
-                Bukkit.getLogger().info("removed entity from game world: " + entity.getName());
             }
             if (entity instanceof Item || entity instanceof BlockDisplay) {
                 entity.remove();
-                Bukkit.getLogger().info("removed entity from game world: " + entity.getName());
             }
         }
         for (Location loc : placedGameBlocks) {

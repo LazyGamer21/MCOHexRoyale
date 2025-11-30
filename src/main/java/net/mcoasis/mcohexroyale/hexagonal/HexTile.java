@@ -303,26 +303,25 @@ public class HexTile {
                 if ((q == 2 && r == 0)) Bukkit.getLogger().warning("team is dead");
                 continue;
             }
-            for (Player member : team.getMembersAlive().keySet()) {
-                if (team.getMembersAlive().get(member) == false) {
-                    if (member.getName().contains("God") && (q == 2 && r == 0)) Bukkit.getLogger().warning("dead in team - " + member.getName());
+            for (UUID memberId : team.getMembersAlive().keySet()) {
+                Player member = Bukkit.getPlayer(memberId);
+                if (member == null) {
                     continue;
                 }
-                if (member.isDead()) {
-                    if (member.getName().contains("God") && (q == 2 && r == 0)) Bukkit.getLogger().warning("dead bruh - " + member.getName());
+                if (team.getMembersAlive().get(memberId) == false) {
+                    continue;
+                }
+                if (member.getHealth() <= 0) {
                     continue;
                 }
                 if (member.getLocation().getWorld() == null || !member.getLocation().getWorld().equals(hexFlag.getBase().getWorld())) {
-                    if (member.getName().contains("God") && (q == 2 && r == 0)) Bukkit.getLogger().warning("different world - " + member.getName());
                     continue;
                 }
                 if (member.getLocation().distance(hexFlag.getBase()) > MCOHexRoyale.getInstance().getConfig().getDouble("capture-distance")) {
-                    if (member.getName().contains("God") && (q == 2 && r == 0)) Bukkit.getLogger().warning("too far - " + member.getName());
                     continue;
                 }
 
                 if (!HexManager.getInstance().canCapture(team, this)) {
-
                     continue;
                 }
                 capturingPlayers.put(member, team);

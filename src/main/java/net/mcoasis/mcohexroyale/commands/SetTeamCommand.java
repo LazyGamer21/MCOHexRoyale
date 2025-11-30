@@ -50,7 +50,7 @@ public class SetTeamCommand implements CommandExecutor {
                     sender.sendMessage(ChatColor.RED + "Player " + playerToChange.getDisplayName() + " is not on a team");
                     return true;
                 }
-                team.getMembersAlive().remove(playerToChange);
+                team.getMembersAlive().remove(playerToChange.getUniqueId());
                 sender.sendMessage(ChatColor.GREEN + "Successfully removed " + playerToChange.getDisplayName() + " from " + team.getTeamColor().getColor() + team.getTeamColor().getName() + ChatColor.GREEN + " team");
                 return true;
             default:

@@ -16,6 +16,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.UUID;
+
 public class HexCaptureListener implements Listener {
 
     public static BukkitRunnable getWinCountdown() {
@@ -42,14 +44,16 @@ public class HexCaptureListener implements Listener {
         HexTile tile = e.getTile();
         String color = team.getTeamColor().getColor();
 
-        for (Player member : team.getMembersAlive().keySet()) {
+        for (UUID memberId : team.getMembersAlive().keySet()) {
+            Player member = Bukkit.getPlayer(memberId);
             member.playSound(member.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
         }
 
         if (team.getBaseTile().equals(tile)) {
             Bukkit.broadcastMessage(team.getTeamColor().getColor() + ChatColor.BOLD + team.getTeamColor().getName() + " Team's " + ChatColor.RESET + ChatColor.DARK_AQUA + "base tile was recaptured!");
-            for (Player member : team.getMembersAlive().keySet()) {
-                if (team.getMembersAlive().get((member))) continue;
+            for (UUID memberId : team.getMembersAlive().keySet()) {
+                Player member = Bukkit.getPlayer(memberId);
+                if (team.getMembersAlive().get((memberId))) continue;
 
                 RespawnListener.stuff(member);
             }

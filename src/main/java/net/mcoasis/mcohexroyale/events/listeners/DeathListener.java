@@ -39,7 +39,7 @@ public class DeathListener implements Listener {
 
         p.getInventory().clear();
 
-        team.getMembersAlive().put(p, false);
+        team.getMembersAlive().put(p.getUniqueId(), false);
 
         team.checkTeamLoss(false);
     }

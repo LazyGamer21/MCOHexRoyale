@@ -15,7 +15,7 @@ public class HexTeam {
     /**
      * the boolean is if the {@link Player} is alive or not (if they died while their flag was down they are not alive)
      */
-    private final HashMap<Player, Boolean> membersAlive = new HashMap<>();
+    private final HashMap<UUID, Boolean> membersAlive = new HashMap<>();
     private final TeamColor teamColor;
     private HexTile baseLocation;
 
@@ -85,11 +85,11 @@ public class HexTeam {
      * @param player The player to add to this {@link HexTeam}'s set of members
      */
     public void addMember(Player player) {
-        if (getMembersAlive().containsKey(player)) return;
+        if (getMembersAlive().containsKey(player.getUniqueId())) return;
         for (HexTeam team : HexManager.getInstance().getTeams()) {
-            team.getMembersAlive().remove(player);
+            team.getMembersAlive().remove(player.getUniqueId());
         }
-        membersAlive.put(player, true);
+        membersAlive.put(player.getUniqueId(), true);
     }
 
     public void checkTeamLoss(boolean bypassBaseOwnership) {
@@ -109,7 +109,7 @@ public class HexTeam {
 
     // -- == Getters + Setters == --
 
-    public HashMap<Player, Boolean> getMembersAlive() {
+    public HashMap<UUID, Boolean> getMembersAlive() {
         return membersAlive;
     }
 
