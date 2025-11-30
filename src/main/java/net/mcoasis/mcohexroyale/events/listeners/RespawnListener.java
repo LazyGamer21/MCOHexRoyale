@@ -67,7 +67,7 @@ public class RespawnListener implements Listener {
                 if (!team.isTeamAlive()) return;
                 p.setGameMode(GameMode.SURVIVAL);
                 team.getBaseTile().teleportToBase(p, true);
-                setKit(p);
+                setKit(p, false);
                 team.getMembersAlive().put(p, true);
                 playerRespawning.remove(p.getUniqueId());
             }, 20L * respawnTimer);
@@ -78,7 +78,7 @@ public class RespawnListener implements Listener {
         p.sendMessage(ChatColor.RED + "Your team does not have their flag! Wait to respawn until it is recaptured!");
     }
 
-    public static void setKit(Player p) {
+    public static void setKit(Player p, boolean shopOpen) {
         HexTeam team = HexManager.getInstance().getPlayerTeam(p);
         if (team == null) {
             Bukkit.getLogger().warning("[HexRoyale] Failed to retrieve " + p.getDisplayName() + "'s team - setting kit");
@@ -108,7 +108,7 @@ public class RespawnListener implements Listener {
         makeInventoryUnbreakable(p);
         dyeArmor(p);
 
-        GameWorldMapRenderer.giveWorldMap(p);
+        if (!shopOpen) GameWorldMapRenderer.giveWorldMap(p);
     }
 
     private static void makeInventoryUnbreakable(Player player) {
@@ -255,7 +255,7 @@ public class RespawnListener implements Listener {
         // clear inventory items that match kit items
         for (int i = 0; i < inv.getSize(); i++) {
             ItemStack item = inv.getItem(i);
-            if (item != null && KIT_ITEMS.contains(item.getType())) {
+            if (item != null && item.getType() != Material.BREAD && KIT_ITEMS.contains(item.getType())) {
                 inv.setItem(i, null);
             }
         }

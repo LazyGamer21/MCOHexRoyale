@@ -58,6 +58,8 @@ public class GameManager {
     private boolean suddenDeathStarted = false;
 
     public void startGame() {
+        MCOHexRoyale.getInstance().reloadConfig();
+        MCOHexRoyale.getInstance().getShopConfigUtil().reload();
         MCOHexRoyale.getInstance().getFlagsConfigUtil().reload();
 
         WorldManager.getInstance().resetGameWorld();
@@ -191,7 +193,7 @@ public class GameManager {
     public void teleportAndResetPlayer(HexTeam team, Player p) {
         team.getBaseTile().teleportToBase(p, true);
         MCOHexRoyale.getInstance().resetPlayer(p, false);
-        Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> setKit(p), 1L);
+        Bukkit.getScheduler().runTaskLater(MCOHexRoyale.getInstance(), () -> setKit(p, false), 1L);
     }
 
     public void restartTimerRunnable() {
@@ -222,7 +224,7 @@ public class GameManager {
             if (!team.isTeamAlive()) return;
             p.setGameMode(GameMode.SURVIVAL);
             team.getBaseTile().teleportToBase(p, true);
-            setKit(p);
+            setKit(p, false);
             team.getMembersAlive().put(p, true);
             RespawnListener.playerRespawning.remove(p.getUniqueId());
         }
