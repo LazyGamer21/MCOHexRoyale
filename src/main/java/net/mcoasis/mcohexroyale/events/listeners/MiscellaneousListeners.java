@@ -5,10 +5,11 @@ import net.mcoasis.mcohexroyale.managers.WorldManager;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 
-public class MiscellaneousListeners {
+public class MiscellaneousListeners implements Listener {
 
     @EventHandler
     public void onDimensionChange(PlayerPortalEvent e) {

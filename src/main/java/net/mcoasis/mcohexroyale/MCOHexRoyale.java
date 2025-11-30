@@ -173,6 +173,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new PlayerInteractWithMapListener(), this);
         getServer().getPluginManager().registerEvents(new PlayerMoveListener(), this);
         getServer().getPluginManager().registerEvents(new ChunkListener(), this);
+        getServer().getPluginManager().registerEvents(new MiscellaneousListeners(), this);
 
         blockBreakListener.loadHarvestableBlocks(getConfig());
     }
