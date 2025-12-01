@@ -32,7 +32,7 @@ public class FoodPage extends AbstractBuyPage {
         return 5;
     }
 
-    protected List<ShopItem> getShopItems() {
+    protected List<ShopItem> getShopItems(UUID uuid) {
 
         ConfigUtil shopConfigUtil = MCOHexRoyale.getInstance().getShopConfigUtil();
         shopConfigUtil.reload();

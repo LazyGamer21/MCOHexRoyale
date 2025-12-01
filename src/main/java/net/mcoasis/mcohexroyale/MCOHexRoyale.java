@@ -29,6 +29,7 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import net.mcoasis.mcohexroyale.gui.main.TilesPage;
 import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexCaptureListener;
+import net.mcoasis.mcohexroyale.items.CoinPouch;
 import net.mcoasis.mcohexroyale.items.TrackingCompass;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.managers.RunnablesManager;
@@ -213,6 +214,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     private void registerCustomItems() {
 
         new TrackingCompass();
+        new CoinPouch();
 
         // new ExampleHammer(this);
     }

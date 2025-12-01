@@ -60,7 +60,8 @@ public class EntityDamageEntityListener implements Listener {
                 Material.IRON_INGOT,
                 Material.RAW_GOLD,
                 Material.GOLD_INGOT,
-                Material.DIAMOND
+                Material.DIAMOND,
+                Material.SUNFLOWER
         };
 
         for (ItemStack item : victimInv.getContents()) {

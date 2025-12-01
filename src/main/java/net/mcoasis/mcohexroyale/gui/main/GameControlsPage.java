@@ -6,6 +6,7 @@ import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.MainPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
+import net.mcoasis.mcohexroyale.items.CoinPouch;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.util.GameWorldMapRenderer;
 import org.bukkit.ChatColor;
@@ -51,7 +52,8 @@ public class GameControlsPage extends AbstractGuiPage {
 
         assignItem(playerId, 31, new GuiItem(Material.RED_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GRAY + "Test");
-            GameWorldMapRenderer.giveWorldMap((Player) e.getWhoClicked());
+            e.getWhoClicked().getInventory().addItem(CoinPouch.of(100));
+            e.getWhoClicked().getInventory().addItem(CoinPouch.of(250));
         }).setName(ChatColor.RED + "Test"));
     }
 

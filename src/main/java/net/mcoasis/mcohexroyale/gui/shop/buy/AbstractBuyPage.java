@@ -29,11 +29,11 @@ public abstract class AbstractBuyPage extends AbstractGuiPage {
     @Override
     protected abstract int getRows();
 
-    abstract List<ShopItem> getShopItems();
+    abstract List<ShopItem> getShopItems(UUID uuid);
 
     @Override
     protected void assignItems(UUID uuid) {
-        for (ShopItem shopItem : getShopItems()) {
+        for (ShopItem shopItem : getShopItems(uuid)) {
 
             String name = shopItem.getDisplayName() != null
                     ? shopItem.getDisplayName()

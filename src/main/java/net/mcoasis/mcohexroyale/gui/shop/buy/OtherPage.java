@@ -4,15 +4,22 @@ import me.ericdavis.lazyItems.AbstractCustomItem;
 import me.ericdavis.lazygui.item.GuiItem;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.shop.BuyPage;
+import net.mcoasis.mcohexroyale.gui.shop.SellPage;
+import net.mcoasis.mcohexroyale.items.CoinPouch;
 import net.mcoasis.mcohexroyale.items.TrackingCompass;
 import net.mcoasis.mcohexroyale.util.ConfigUtil;
 import net.mcoasis.mcohexroyale.util.ShopItem;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,14 +42,17 @@ public class OtherPage extends AbstractBuyPage{
     }
 
     @Override
-    List<ShopItem> getShopItems() {
+    List<ShopItem> getShopItems(UUID uuid) {
         ConfigUtil shopConfigUtil = MCOHexRoyale.getInstance().getShopConfigUtil();
         shopConfigUtil.reload();
 
         FileConfiguration shopConfig = shopConfigUtil.getConfig();
 
-        return List.of(
+        int coinPouch1 = 25;
+        int coinPouch2 = 100;
+        int coinPouch3 = SellPage.coinAmounts.getOrDefault(uuid, 0);
 
+        List<ShopItem> shopItems = new ArrayList<>(Arrays.asList(
                 // --- PIG BUNDLE ---
                 new ShopItem(new ItemStack(Material.CARROT_ON_A_STICK),
                         shopConfig.getInt("buy.other.pig", 250000), 21)
@@ -78,9 +88,24 @@ public class OtherPage extends AbstractBuyPage{
                         .setDisplayName("Porta Potty"),
 
                 new ShopItem(new ItemStack(Material.SMOKER),
-                        shopConfig.getInt("buy.other.smoker", 5000), 28)
+                        shopConfig.getInt("buy.other.smoker", 5000), 28),
 
-        );
+                // coin pouches
+                new ShopItem(CoinPouch.of(coinPouch1), coinPouch1, 16)
+                        .setDisplayName("Coin Pouch (" + coinPouch1 + ")"),
+
+                new ShopItem(CoinPouch.of(coinPouch2), coinPouch2, 16 + 9)
+                        .setDisplayName("Coin Pouch (" + coinPouch2 + ")")
+
+        ));
+
+        if (coinPouch3 > 0) {
+            // only show the last pouch (all coins) if they have at least 1 coin
+            shopItems.add(new ShopItem(CoinPouch.of(coinPouch3), coinPouch3, 16 + 18)
+                    .setDisplayName("Coin Pouch (" + coinPouch3 + ")"));
+        }
+
+        return shopItems;
     }
 
     @Override
