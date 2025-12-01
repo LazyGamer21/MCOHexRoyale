@@ -160,6 +160,8 @@ public class GameManager {
     public void endGame(boolean teleportPlayers, boolean pluginDisable) {
         setGameState(GameState.ENDING);
 
+        MCOHexRoyale.getInstance().reloadConfig();
+
         HexCaptureListener.middleTileTeam = null;
 
         // cancel all tasks
@@ -171,7 +173,7 @@ public class GameManager {
         // clear hex grid
         HexManager.getInstance().clearGrid();
         // clear hex teams
-        HexManager.getInstance().getTeams().clear();
+        if (MCOHexRoyale.getInstance().getConfig().getBoolean("remove-teams-on-game-end", true)) HexManager.getInstance().getTeams().clear();
 
         // remove scoreboard
         LazyScoreboard scoreboard = RunnablesManager.getInstance().getScoreboard();

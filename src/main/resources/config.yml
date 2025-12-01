@@ -11,8 +11,12 @@ capture-update-timer: 20
 warning-message-timer: 60
 tracking-compass-update-time: 20
 
-game-world: "world"
+game-world: "hexroyale_1"
 lobby-world: "world"
+
+
+# (true/false) decides if teams will be removed when the game ends
+remove-teams-on-game-end: false
 
 # max players teleported to lobby/game at a time
 max-teleport-count: 20
