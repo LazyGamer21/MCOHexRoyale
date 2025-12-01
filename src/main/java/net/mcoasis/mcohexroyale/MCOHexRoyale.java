@@ -1,5 +1,7 @@
 package net.mcoasis.mcohexroyale;
 
+import me.ericdavis.lazyItems.LazyItems;
+import me.ericdavis.lazyItems.example.ExampleHammer;
 import me.ericdavis.lazySelection.LazySelection;
 import me.ericdavis.lazygui.LazyGui;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
@@ -27,6 +29,7 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTile;
 import net.mcoasis.mcohexroyale.gui.main.TilesPage;
 import net.mcoasis.mcohexroyale.gui.main.GameControlsPage;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexCaptureListener;
+import net.mcoasis.mcohexroyale.items.TrackingCompass;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.managers.RunnablesManager;
 import net.mcoasis.mcohexroyale.util.ConfigUtil;
@@ -93,6 +96,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
 
         registerLibraries();
         registerGuiPages();
+        registerCustomItems();
         registerCommandsAndListeners();
 
         HexManager.getInstance().populateGrid();
@@ -181,6 +185,7 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
     private void registerLibraries() {
         new LazyGui(this);
         new LazySelection(this);
+        new LazyItems(this);
     }
 
     private void registerGuiPages() {
@@ -203,6 +208,13 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         new PotionsPage(this);
         new OtherPage(this);
         new WeaponsPage(this);
+    }
+
+    private void registerCustomItems() {
+
+        new TrackingCompass();
+
+        // new ExampleHammer(this);
     }
 
     public void saveHexFlag(HexTile tile) {

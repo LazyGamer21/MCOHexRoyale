@@ -33,6 +33,7 @@ buy:
       1: 250
       2: 500
   other:
+    tracking-compass: 1000
     furnace: 5
     smoker: 5
     porta-potty: 500

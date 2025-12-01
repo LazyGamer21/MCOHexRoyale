@@ -60,18 +60,17 @@ public class ChunkListener implements Listener {
     private void checkNearbyFlags(Chunk loadedChunk) {
         int lx = loadedChunk.getX();
         int lz = loadedChunk.getZ();
+        World world = loadedChunk.getWorld();
 
         for (HexTile tile : HexManager.getInstance().getHexGrid()) {
             HexFlag flag = tile.getHexFlag();
 
-            Chunk flagChunk = flag.getBase().getChunk();
-            int fx = flagChunk.getX();
-            int fz = flagChunk.getZ();
+            int fx = flag.getBase().getBlockX() >> 4;
+            int fz = flag.getBase().getBlockZ() >> 4;
 
             // Only check flags whose 3×3 area includes the loaded chunk
             if (Math.abs(lx - fx) <= 1 && Math.abs(lz - fz) <= 1) {
-
-                if (areAll9ChunksLoaded(flagChunk)) {
+                if (areAll9ChunksLoaded(world, fx, fz)) {
                     // All chunks loaded → ensure flag is spawned
                     flag.spawnFlag(false);
                     flag.moveFlag(tile.getCapturePercentage());
@@ -87,13 +86,13 @@ public class ChunkListener implements Listener {
     private void unloadFlagsMissingChunks(Chunk unloadedChunk) {
         int ux = unloadedChunk.getX();
         int uz = unloadedChunk.getZ();
+        World world = unloadedChunk.getWorld();
 
         for (HexTile tile : HexManager.getInstance().getHexGrid()) {
             HexFlag flag = tile.getHexFlag();
 
-            Chunk flagChunk = flag.getBase().getChunk();
-            int fx = flagChunk.getX();
-            int fz = flagChunk.getZ();
+            int fx = flag.getBase().getBlockX() >> 4;
+            int fz = flag.getBase().getBlockZ() >> 4;
 
             // Is this unloaded chunk part of the 3×3?
             if (Math.abs(ux - fx) <= 1 && Math.abs(uz - fz) <= 1) {
@@ -107,16 +106,15 @@ public class ChunkListener implements Listener {
     // UTILITY
     // ---------------------------------------------
 
-    private boolean areAll9ChunksLoaded(Chunk center) {
-        World world = center.getWorld();
-        int baseX = center.getX();
-        int baseZ = center.getZ();
-
-        // Check the 3×3 grid of chunks around flagChunk
+    /**
+     * Checks the full 3×3 area around a flag's center chunk coordinates.
+     * Uses only coordinate math + isChunkLoaded() → completely safe inside unload events.
+     */
+    private boolean areAll9ChunksLoaded(World world, int centerX, int centerZ) {
         for (int dx = -1; dx <= 1; dx++) {
             for (int dz = -1; dz <= 1; dz++) {
-                if (!world.isChunkLoaded(baseX + dx, baseZ + dz)) {
-                    return false; // missing a chunk → cannot spawn
+                if (!world.isChunkLoaded(centerX + dx, centerZ + dz)) {
+                    return false;
                 }
             }
         }

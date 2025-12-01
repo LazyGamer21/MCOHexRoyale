@@ -1,8 +1,10 @@
 package net.mcoasis.mcohexroyale.gui.shop.buy;
 
+import me.ericdavis.lazyItems.AbstractCustomItem;
 import me.ericdavis.lazygui.item.GuiItem;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.gui.shop.BuyPage;
+import net.mcoasis.mcohexroyale.items.TrackingCompass;
 import net.mcoasis.mcohexroyale.util.ConfigUtil;
 import net.mcoasis.mcohexroyale.util.ShopItem;
 import org.bukkit.ChatColor;
@@ -55,15 +57,8 @@ public class OtherPage extends AbstractBuyPage{
                 new ShopItem(new ItemStack(Material.FURNACE),
                         shopConfig.getInt("buy.other.furnace", 5000), 10),
 
-                new ShopItem(new ItemStack(Material.CAULDRON),
-                        shopConfig.getInt("buy.other.porta-potty", 500000), 22)
-                        .setDisplayName("Porta Potty"),
-
                 new ShopItem(new ItemStack(Material.BLAST_FURNACE),
                         shopConfig.getInt("buy.other.blast-furnace", 15000), 19),
-
-                new ShopItem(new ItemStack(Material.SMOKER),
-                        shopConfig.getInt("buy.other.smoker", 5000), 28),
 
                 // --- HORSE BUNDLE ---
                 new ShopItem(new ItemStack(Material.SADDLE),
@@ -72,7 +67,18 @@ public class OtherPage extends AbstractBuyPage{
                     addExtraItems(
                             new ItemStack(Material.HORSE_SPAWN_EGG)
                     );
-                }}
+                }},
+
+                new ShopItem(AbstractCustomItem.of(TrackingCompass.class),
+                        shopConfig.getInt("buy.other.tracking-compass", 1000000), 22)
+                        .setDisplayName("Player Tracker"),
+
+                new ShopItem(new ItemStack(Material.CAULDRON),
+                        shopConfig.getInt("buy.other.porta-potty", 500000), 24)
+                        .setDisplayName("Porta Potty"),
+
+                new ShopItem(new ItemStack(Material.SMOKER),
+                        shopConfig.getInt("buy.other.smoker", 5000), 28)
 
         );
     }
