@@ -48,7 +48,8 @@ public class PotionsPage extends AbstractBuyPage {
             ItemStack potion = createPotion(PotionEffectType.STRENGTH, level);
             items.add(new ShopItem(potion,
                     shopConfig.getInt("buy.potions.strength." + level, 100000 * level),
-                    11 + ((level-1) * 9)));
+                    11 + ((level-1) * 9))
+                    .setDisplayName("Strength Potion"));
         }
 
         // Speed I-III
@@ -56,7 +57,8 @@ public class PotionsPage extends AbstractBuyPage {
             ItemStack potion = createPotion(PotionEffectType.SPEED, level);
             items.add(new ShopItem(potion,
                     shopConfig.getInt("buy.potions.speed." + level, 75000 * level),
-                    12 + ((level-1) * 9)));
+                    12 + ((level-1) * 9))
+                    .setDisplayName("Speed Potion"));
         }
 
         // Regeneration I-II
@@ -64,7 +66,8 @@ public class PotionsPage extends AbstractBuyPage {
             ItemStack potion = createPotion(PotionEffectType.REGENERATION, level);
             items.add(new ShopItem(potion,
                     shopConfig.getInt("buy.potions.regeneration." + level, 200000 * level),
-                    14 + ((level-1) * 9)));
+                    14 + ((level-1) * 9))
+                    .setDisplayName("Regeneration Potion"));
         }
 
         // Jump Boost I-II
@@ -72,7 +75,8 @@ public class PotionsPage extends AbstractBuyPage {
             ItemStack potion = createPotion(PotionEffectType.JUMP_BOOST, level);
             items.add(new ShopItem(potion,
                     shopConfig.getInt("buy.potions.jump." + level, 50000 * level),
-                    15 + ((level-1) * 9)));
+                    15 + ((level-1) * 9))
+                    .setDisplayName("Jump Boost Potion"));
         }
 
         return items;

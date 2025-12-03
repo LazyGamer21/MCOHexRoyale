@@ -19,19 +19,19 @@ buy:
   perks:
   potions:
     strength:
+      1: 2500
+      2: 3500
+      3: 5000
+    speed:
+      1: 1250
+      2: 2250
+      3: 3250
+    regeneration:
+      1: 1500
+      2: 2750
+    jump:
       1: 500
       2: 1000
-      3: 1500
-    speed:
-      1: 250
-      2: 500
-      3: 750
-    regeneration:
-      1: 750
-      2: 1250
-    jump:
-      1: 250
-      2: 500
   other:
     tracking-compass: 1000
     furnace: 5
