@@ -11,6 +11,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
@@ -303,29 +304,57 @@ public class HexTile {
                 continue;
             }
             for (UUID memberId : team.getMembersAlive().keySet()) {
-                Player member = Bukkit.getPlayer(memberId);
-                if (member == null) {
-                    continue;
-                }
-                if (team.getMembersAlive().get(memberId) == false) {
-                    continue;
-                }
-                if (member.getHealth() <= 0) {
-                    continue;
-                }
-                if (member.getLocation().getWorld() == null || !member.getLocation().getWorld().equals(hexFlag.getBase().getWorld())) {
-                    continue;
-                }
-                if (member.getLocation().distance(hexFlag.getBase()) > MCOHexRoyale.getInstance().getConfig().getDouble("capture-distance")) {
-                    continue;
-                }
+                // continue if player is respawning
+                if (!team.getMembersAlive().get(memberId)) continue;
 
-                if (!HexManager.getInstance().canCapture(team, this)) {
+                // continue if the player doesn't exist or is dead
+                Player member = Bukkit.getPlayer(memberId);
+                if (member == null) continue;
+                if (member.getHealth() <= 0) continue;
+
+                // continue if the player is not in the same world
+                Location mLoc = member.getLocation();
+                Location fLoc = hexFlag.getBase();
+                World mWorld = mLoc.getWorld();
+                if (mWorld == null || !mWorld.equals(fLoc.getWorld())) continue;
+
+                // old bad way because distance() can be expensive
+                /*if (member.getLocation().distance(hexFlag.getBase()) > MCOHexRoyale.getInstance().getConfig().getDouble("capture-distance")) {
                     continue;
-                }
+                }*/
+
+                // continue if the player is too far away to capture the point
+                if (!isInCapturePoint(mLoc, fLoc)) continue;
+
+                // continue if the player's team is not able to capture this point
+                if (!HexManager.getInstance().canCapture(team, this)) continue;
+
                 capturingPlayers.put(member, team);
             }
         }
+    }
+
+    /**
+     *
+     * @param playerLoc Location of the player
+     * @param centerLoc Location of the base of this tile's flag
+     * @return True if the playerLoc is close enough to capture at centerLoc
+     */
+    private boolean isInCapturePoint(Location playerLoc, Location centerLoc) {
+
+        if (centerLoc == null) return false;
+        if (centerLoc.getWorld() != playerLoc.getWorld()) {
+            return false;
+        }
+
+        double dx = playerLoc.getX() - centerLoc.getX();
+        double dz = playerLoc.getZ() - centerLoc.getZ();
+        double dy = playerLoc.getY() - centerLoc.getY();
+
+        double radius = MCOHexRoyale.getInstance().getConfig().getDouble("capture-distance");
+        double radiusSquared = radius * radius;
+
+        return dx * dx + dy * dy + dz * dz <= radiusSquared;
     }
 
     public List<HexTile> getNeighbors() {
