@@ -14,6 +14,7 @@ public class ShopItem {
     private final int cost;
     private final int slot;
     private final List<ItemStack> extraItems = new ArrayList<>();
+    private final List<String> lore = new ArrayList<>();
 
     private String displayName = null;  // name used on the button
     private String givenName = null;    // name applied to the item given
@@ -26,6 +27,11 @@ public class ShopItem {
 
     public ShopItem setDisplayName(String displayName) {
         this.displayName = displayName;
+        return this;
+    }
+
+    public ShopItem setLore(String... lore) {
+        this.lore.addAll(Arrays.stream(lore).toList());
         return this;
     }
 

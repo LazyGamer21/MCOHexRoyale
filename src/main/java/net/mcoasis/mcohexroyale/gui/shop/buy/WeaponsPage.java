@@ -73,10 +73,13 @@ public class WeaponsPage extends AbstractBuyPage {
                         shopConfig.getInt("buy.weapons-tools.mace", 1500000), 32),
 
                 new ShopItem(new ItemStack(Material.BOW),
-                        shopConfig.getInt("buy.weapons-tools.bow", 500000), 15),
+                        shopConfig.getInt("buy.weapons-tools.bow", 500000), 15)
+                        .setDisplayName("Gun")
+                        .setLore(ChatColor.LIGHT_PURPLE + "pew pew"),
 
                 new ShopItem(new ItemStack(Material.ARROW, 8),
-                        shopConfig.getInt("buy.weapons-tools.arrows", 150000), 24),
+                        shopConfig.getInt("buy.weapons-tools.arrows", 150000), 24)
+                        .setDisplayName("Bullets"),
 
                 new ShopItem(new ItemStack(Material.SHIELD),
                         shopConfig.getInt("buy.weapons-tools.shield", 750000), 33)

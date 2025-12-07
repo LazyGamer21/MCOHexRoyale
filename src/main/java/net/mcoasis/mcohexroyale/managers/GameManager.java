@@ -10,6 +10,7 @@ import net.mcoasis.mcohexroyale.gui.shop.SellPage;
 import net.mcoasis.mcohexroyale.hexagonal.HexManager;
 import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.hexagonal.HexTile;
+import net.mcoasis.mcohexroyale.util.GameWorldMapRenderer;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -362,6 +363,8 @@ public class GameManager {
                     // send all players a action bar message saying "starting soon"
                     if (startOfGame) {
                         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.GREEN + "Teleported to game world! Game starting shortly..."));
+                        // HOT FIX 2 - give maps to non-team players
+                        if (HexManager.getInstance().getPlayerTeam(player) == null) GameWorldMapRenderer.giveWorldMap(player);
                     } else if (suddenDeath) {
                         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(ChatColor.RED + "Teleported to sudden death! Respawns are disabled."));
                     } else {

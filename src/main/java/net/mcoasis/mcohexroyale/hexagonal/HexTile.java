@@ -1,6 +1,5 @@
 package net.mcoasis.mcohexroyale.hexagonal;
 
-import net.kyori.adventure.platform.facet.Facet;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
 import net.mcoasis.mcohexroyale.events.HexCaptureEvent;
 import net.mcoasis.mcohexroyale.events.HexLossEvent;
@@ -11,10 +10,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.util.NumberConversions;
 import org.bukkit.util.Vector;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class HexTile {
@@ -28,6 +25,7 @@ public class HexTile {
 
     private HexTeam currentTeam;
     private boolean currentTeamOwns = false;
+    private boolean isContested = false;
 
     private double capturePercentage = 0.0;
     private int capturingPlayersAmount = 0;
@@ -197,6 +195,32 @@ public class HexTile {
                 }
             }
 
+            // isContested will be true if there are multiple teams OR the singular team != currentTeam
+
+            boolean hasMultipleTeams = teamCounts.size() > 1;
+            if (currentTeam == null) {
+                isContested = false;
+            } else {
+                boolean singleTeamNotCurrent = !hasMultipleTeams && !teamCounts.containsKey(currentTeam.getTeamColor());
+                isContested = singleTeamNotCurrent;
+            }
+
+
+            if (q == 0 && r == 0) {
+                if (hasMultipleTeams) {
+                    Bukkit.getLogger().info("hasMultipleTeams: " + "true");
+                } else {
+                    Bukkit.getLogger().info("hasMultipleTeams: " + "false");
+                }
+                if (teamCounts.entrySet().stream().toList().getFirst() != currentTeam) {
+                    Bukkit.getLogger().info("idk bruh: " + "true");
+                } else {
+                    Bukkit.getLogger().info("idk bruh: " + "false");
+                }
+            }
+
+
+
             // "max" is the number of players in the capturingTeam
             capturingPlayersAmount = max - secondMax;
 
@@ -214,7 +238,6 @@ public class HexTile {
             String team1 = topTeam.getColor() + topTeam.getName() + ": " + max;
             String pipe = "" + ChatColor.GRAY + ChatColor.BOLD + " | ";
             String team2 = secondTeam == null ? ChatColor.GRAY + "0" : secondTeam.getColor() + secondTeam.getName() + ": " + secondMax;
-
 
             for (Player capturer : capturingPlayers.keySet()) {
                 capturer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(team1 +
@@ -580,5 +603,9 @@ public class HexTile {
 
     public HexTeam getCapturingTeam() {
         return this.capturingTeam;
+    }
+
+    public boolean isContested() {
+        return this.isContested;
     }
 }

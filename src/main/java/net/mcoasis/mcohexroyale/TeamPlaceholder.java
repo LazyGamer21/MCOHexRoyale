@@ -30,7 +30,7 @@ public class TeamPlaceholder extends PlaceholderExpansion {
         if (identifier.equalsIgnoreCase("team")) {
             HexTeam team = HexManager.getInstance().getPlayerTeam(player);
             if (team == null) return "";
-            return team.getTeamColor().getColor() + "[" + team.getTeamColor().getName() + "]";
+            return team.getTeamColor().getColor() + "[" + team.getTeamColor().getName() + "] ";
         }
 
         return null; // placeholder not handled

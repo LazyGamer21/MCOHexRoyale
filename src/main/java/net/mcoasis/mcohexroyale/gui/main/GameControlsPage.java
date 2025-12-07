@@ -1,5 +1,6 @@
 package net.mcoasis.mcohexroyale.gui.main;
 
+import it.unimi.dsi.fastutil.bytes.ByteUnaryOperator;
 import me.ericdavis.lazygui.item.*;
 import me.ericdavis.lazygui.test.AbstractGuiPage;
 import net.mcoasis.mcohexroyale.MCOHexRoyale;
@@ -9,7 +10,9 @@ import net.mcoasis.mcohexroyale.hexagonal.HexTeam;
 import net.mcoasis.mcohexroyale.items.CoinPouch;
 import net.mcoasis.mcohexroyale.managers.GameManager;
 import net.mcoasis.mcohexroyale.util.GameWorldMapRenderer;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
@@ -52,8 +55,9 @@ public class GameControlsPage extends AbstractGuiPage {
 
         assignItem(playerId, 31, new GuiItem(Material.RED_CONCRETE, e -> {
             e.getWhoClicked().sendMessage(ChatColor.GRAY + "Test");
-            e.getWhoClicked().getInventory().addItem(CoinPouch.of(100));
-            e.getWhoClicked().getInventory().addItem(CoinPouch.of(250));
+            Location loc = HexManager.getInstance().getHexTile(0, 0).getFlagLocation();
+            e.getWhoClicked().teleport(loc);
+            Bukkit.getLogger().info(loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ() + " -- " + loc.getWorld().getName());
         }).setName(ChatColor.RED + "Test"));
     }
 

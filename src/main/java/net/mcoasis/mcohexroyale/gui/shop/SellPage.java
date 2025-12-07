@@ -193,7 +193,7 @@ public class SellPage extends AbstractGuiPage {
         }).setName(ChatColor.YELLOW + "Sell 8 " + itemName)
                 .setLore("Total Price: " + sellCost * 8));
 
-        assignItem(uuid, startingSlot + 18, new GuiItem(new ItemStack(material, 64), e -> {
+        assignItem(uuid, startingSlot + 18, new GuiItem(new ItemStack(material, 1000000), e -> {
             sellItems((Player) e.getWhoClicked(), material, getItemCount(Objects.requireNonNull(Bukkit.getPlayer(uuid)), material), sellCost);
         }).setName(ChatColor.YELLOW + "Sell All " + itemName)
                 .setLore("Total Price: " + sellCost * getItemCount(Objects.requireNonNull(Bukkit.getPlayer(uuid)), material)));

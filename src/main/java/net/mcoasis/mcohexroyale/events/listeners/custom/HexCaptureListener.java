@@ -46,6 +46,7 @@ public class HexCaptureListener implements Listener {
 
         for (UUID memberId : team.getMembersAlive().keySet()) {
             Player member = Bukkit.getPlayer(memberId);
+            if (member == null) continue;
             member.playSound(member.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
         }
 
@@ -71,6 +72,7 @@ public class HexCaptureListener implements Listener {
 
     void startWinCountdown(HexTeam team) {
         MCOHexRoyale plugin = MCOHexRoyale.getInstance();
+        plugin.reloadConfig();
         secondsNeeded = plugin.getConfig().getInt("middle-tile-win-timer", 120);
 
         Bukkit.broadcastMessage(ChatColor.BOLD + team.getTeamColor().getColor() + team.getTeamColor().getName() + " Team "
@@ -104,10 +106,15 @@ public class HexCaptureListener implements Listener {
                 middleTileTeam = teamWithMiddleTile;
 
                 // If the countdown has finished, fire the win event
-                // If it is being captured by another team do not end
-                Bukkit.getLogger().info("Team Owning Mid Tile: " + teamWithMiddleTile.getTeamColor().getName());
-                if (middleTile.getCapturingTeam() != null) Bukkit.getLogger().info("Mid Tile Capturing Team: " + middleTile.getCapturingTeam().getTeamColor().getName());
-                if (timeLeft <= 0 && (middleTile.getCapturingTeam() == null ||middleTile.getCapturingTeam().getTeamColor() == teamWithMiddleTile.getTeamColor())) {
+                // If it is contested by another team do not end
+                // isContested = is another team in the tile
+                boolean isContested = middleTile.isContested();
+                if (isContested) {
+                    Bukkit.getLogger().info("isContested: " + "true");
+                } else {
+                    Bukkit.getLogger().info("isContested: " + "false");
+                }
+                if (timeLeft <= 0 && !isContested) {
                     Bukkit.getPluginManager().callEvent(new TeamWonEvent(teamWithMiddleTile, true));
                     cancel();
                     return;

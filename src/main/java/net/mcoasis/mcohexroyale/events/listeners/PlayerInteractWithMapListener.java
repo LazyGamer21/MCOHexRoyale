@@ -78,7 +78,15 @@ public class PlayerInteractWithMapListener implements Listener {
         boolean isTrapdoor = e.getClickedBlock().getType().toString().endsWith("TRAPDOOR");
         boolean isDoor = e.getClickedBlock().getType().toString().endsWith("DOOR");
 
-        if ((isButton || isLever || isTrapdoor || isDoor) && !isAdmin) {
+        WorldManager worldManager = WorldManager.getInstance();
+
+        if (!isAdmin && (isButton || isLever)) {
+            if (!worldManager.getPlacedGameBlocks().contains(e.getClickedBlock().getLocation())) {
+                e.setCancelled(true);
+            }
+        }
+
+        if (!isAdmin && (isTrapdoor || isDoor) && !e.getPlayer().getWorld().equals(worldManager.getLobbyWorld())) {
             if (!WorldManager.getInstance().getPlacedGameBlocks().contains(e.getClickedBlock().getLocation())) {
                 e.setCancelled(true);
             }

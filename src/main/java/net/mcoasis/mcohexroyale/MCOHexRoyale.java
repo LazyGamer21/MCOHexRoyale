@@ -7,8 +7,10 @@ import me.ericdavis.lazygui.LazyGui;
 import net.mcoasis.mcohexroyale.commands.HexRoyaleCommand;
 import net.mcoasis.mcohexroyale.commands.SetMiddleSpawnCommand;
 import net.mcoasis.mcohexroyale.commands.SetTeamCommand;
+import net.mcoasis.mcohexroyale.commands.participant.ChooseTeamCommand;
 import net.mcoasis.mcohexroyale.commands.participant.ShopCommand;
 import net.mcoasis.mcohexroyale.commands.participant.TeamChatCommand;
+import net.mcoasis.mcohexroyale.commands.tabcompleters.ChooseTeamTabCompleter;
 import net.mcoasis.mcohexroyale.commands.tabcompleters.SetTeamTabCompleter;
 import net.mcoasis.mcohexroyale.events.listeners.*;
 import net.mcoasis.mcohexroyale.events.listeners.custom.HexLossListener;
@@ -84,6 +86,10 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
 
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.addAttachment(this, "hexroyale.chooseteam", true);
+        }
+
         saveDefaultConfig();
         createFlagsConfig();
         createSpawnsConfig();
@@ -156,9 +162,11 @@ public final class MCOHexRoyale extends JavaPlugin implements Listener {
         getCommand("teamchat").setExecutor(teamChatCommand);
         getCommand("shop").setExecutor(new ShopCommand());
         getCommand("setmiddlespawn").setExecutor(new SetMiddleSpawnCommand());
+        getCommand("chooseteam").setExecutor(new ChooseTeamCommand());
 
         // register tab completers
         getCommand("setteam").setTabCompleter(new SetTeamTabCompleter());
+        getCommand("chooseteam").setTabCompleter(new ChooseTeamTabCompleter());
 
         // register listeners
         getServer().getPluginManager().registerEvents(new LazySelectionListener(), this);

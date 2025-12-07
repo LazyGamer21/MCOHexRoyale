@@ -22,9 +22,7 @@ public class GameWorldMapRenderer extends MapRenderer {
     private final BufferedImage image;
 
     private static final int MIN_X = -500;
-    private static final int MAX_X = 500;
     private static final int MIN_Z = -500;
-    private static final int MAX_Z = 500;
 
     public GameWorldMapRenderer(BufferedImage image) {
         super(true); // we draw the entire map manually
@@ -120,6 +118,8 @@ public class GameWorldMapRenderer extends MapRenderer {
     // ---------------------------------------------
     // Give Map to Player
     // ---------------------------------------------
+
+
 
     public static void giveWorldMap(Player player) {
         MapView view = Bukkit.createMap(player.getWorld());

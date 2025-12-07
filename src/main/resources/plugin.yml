@@ -27,6 +27,9 @@ commands:
     description: sets the middle tile spawn location
     usage: /setmiddlespawn
     permission: hexroyale.admin
+  chooseteam:
+    description: let participants choose their team
+    permission: hexroyale.chooseteam
 
 permissions:
   hexroyale.admin:
@@ -35,3 +38,5 @@ permissions:
     default: false
   hexroyale.shop:
     default: op
+  hexroyale.chooseteam:
+    default: true

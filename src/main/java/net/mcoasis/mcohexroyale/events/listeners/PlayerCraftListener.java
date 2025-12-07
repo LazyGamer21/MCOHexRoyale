@@ -14,6 +14,9 @@ public class PlayerCraftListener implements Listener {
                 && !GameManager.getInstance().getGameState().equals(GameManager.GameState.INGAME)) return;
 
 
+        // HOT FIX 1 - disallow crafting boats
+        if (e.getRecipe().getResult().getType().name().endsWith("_BOAT")) e.setCancelled(true);
+
         // allow the craft if the items used to craft it are only planks or logs
         boolean onlyPlanksOrLogs = true;
         for (var item : e.getInventory().getMatrix()) {
